@@ -8,73 +8,96 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
+
 namespace Tiny_Langauge_Compiler
 {
     public partial class Form1 : Form
     {
-        ScanningPhase Number,StringInQuotes,ReservedWords,CommentStatement,Identifier,FunctionCall;
+        
         public Form1()
         {
-            Number = new ScanningPhase(@"(\d+(\.\d*)?)", "Number");
-            StringInQuotes = new ScanningPhase(@"(""[^""]*"")", "String");
-            ReservedWords = new ScanningPhase(@"(int|float|string|read|write|repeat|until|if|elseif|else|return|then|endl)", "Reserved Word");
-            CommentStatement = new ScanningPhase(@"(/\*([^(/\*)^(\*/)]|\s*)*\*/)", "Comment");
-            Identifier = new ScanningPhase(@"([a-zA-Z_][a-zA-Z0-9_]*)", "Identifier");
-            FunctionCall = new ScanningPhase(String.Format(@"{0}\(({0}\s*(,\s* {0})*)?\)", Identifier.getRegularExpression()), "FunctionCall");
-
+            
             InitializeComponent();
         }
 
         private void CompileBtn_Click(object sender, EventArgs e)
         {
-            DataTable tokensDataTable = new DataTable();
-            tokensDataTable.Columns.Add("Token");
-            tokensDataTable.Columns.Add("Type");
-            foreach(String line in CodeTextBox.Lines)
+           
+            String Code = String.Join(" ", CodeTextBox.Text);
+
+            MatchCollection matches;
+            Scanner scanner = new Scanner();
+            scanner.StartScan(Code);
+            /*for(int i = 0;i<Code.Length;i++)
             {
-                //Numbers Phase
-                MatchCollection matchCollection = new Regex(Number.getRegularExpression()).Matches(line);
-                foreach(Match match in matchCollection)
+                String CurrentLine = Code[i];
+                
+                Match CommentMatch = CommentStatement.Match(CurrentLine);
+                if (CommentMatch.Success)
+                    tokensDataTable.Rows.Add(CommentMatch.Value, CommentStatement.getType());
+
+                CurrentLine = Scanner.DeleteComments(CurrentLine);
+                String CurrentLineWithStrings = CurrentLine;
+                CurrentLine = Scanner.DeleteStrings(CurrentLine);
+
+                String[] splittedWords = CurrentLine.Split(' ');
+                foreach (String word in splittedWords)
                 {
-                    tokensDataTable.Rows.Add(match.Value, Number.getType());
+                    //Left Braces
+                    Match match = LBraces.Match(word);
+                    if (match.Success)
+                        tokensDataTable.Rows.Add(match.Value, LBraces.getType());
+                    //Identifier Phase
+                    match = Identifier.Match(word);
+                    if (match.Success && !DataTypes.isMatch(match.Value) && !ReservedWords.isMatch(match.Value))
+                        tokensDataTable.Rows.Add(match.Value, Identifier.getType());
+                    //Left Parentheses
+                    match = LParentheses.Match(word);
+                    if (match.Success)
+                        tokensDataTable.Rows.Add(match.Value, LParentheses.getType());
+                    //DataTypes Phase
+                    match = DataTypes.Match(word);
+                    if(match.Success)
+                        tokensDataTable.Rows.Add(match.Value, DataTypes.getType() + "(" + match.Value.ToUpper() + ")");
+                    //Reserved Words Phase
+                    match = ReservedWords.Match(word);
+                    if (match.Success)
+                        tokensDataTable.Rows.Add(match.Value, ReservedWords.getType());
+                    
+                    //Comma Phase
+                    match = Comma.Match(word);
+                    if (match.Success)
+                        tokensDataTable.Rows.Add(match.Value, Comma.getType());
+                    //Right Parentheses
+                    match = RParentheses.Match(word);
+                    if (match.Success)
+                        tokensDataTable.Rows.Add(match.Value, RParentheses.getType());
+                    //Assign Operator
+                    match = Assign.Match(word);
+                    if (match.Success)
+                        tokensDataTable.Rows.Add(match.Value, Assign.getType());
+                    
                 }
 
-                //String Phase
-                matchCollection = new Regex(StringInQuotes.getRegularExpression()).Matches(line);
-                foreach (Match match in matchCollection)
-                {
-                    tokensDataTable.Rows.Add(match.Value, StringInQuotes.getType());
-                }
+                Match StringMatch = StringInQuotes.Match(CurrentLineWithStrings);
+                if (StringMatch.Success)
+                    tokensDataTable.Rows.Add(StringMatch.Value, StringInQuotes.getType());
 
-                //Reserved Words Phase
-                matchCollection = new Regex(ReservedWords.getRegularExpression()).Matches(line);
-                foreach (Match match in matchCollection)
-                {
-                    tokensDataTable.Rows.Add(match.Value, ReservedWords.getType());
-                }
+                //SemiColon Phase
+                Match EndingMatch = Semicolon.Match(CurrentLine);
+                if (EndingMatch.Success)
+                    tokensDataTable.Rows.Add(EndingMatch.Value, Semicolon.getType());
+                //Right Braces
+                EndingMatch = RBraces.Match(CurrentLine);
+                if (EndingMatch.Success)
+                    tokensDataTable.Rows.Add(EndingMatch.Value, RBraces.getType());
+            }*/
+            
+            
+            
 
-                //Comment Phase
-                matchCollection = new Regex(CommentStatement.getRegularExpression()).Matches(line);
-                foreach (Match match in matchCollection)
-                {
-                    tokensDataTable.Rows.Add(match.Value, CommentStatement.getType());
-                }
 
-                //Identifier Phase
-                matchCollection = new Regex(Identifier.getRegularExpression()).Matches(line);
-                foreach (Match match in matchCollection)
-                {
-                    tokensDataTable.Rows.Add(match.Value, Identifier.getType());
-                }
-
-                //Function Call Phase
-                matchCollection = new Regex(FunctionCall.getRegularExpression()).Matches(line);
-                foreach (Match match in matchCollection)
-                {
-                    tokensDataTable.Rows.Add(match.Value, FunctionCall.getType());
-                }
-            }
-            TokensGridView.DataSource = tokensDataTable;
+            TokensGridView.DataSource = scanner.tokensDataTable;
         }
     }
 }
