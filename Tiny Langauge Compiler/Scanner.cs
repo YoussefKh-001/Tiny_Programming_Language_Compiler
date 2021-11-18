@@ -30,15 +30,15 @@ namespace Tiny_Langauge_Compiler
             StringInQuotes = new ScanningPhase(@"^""[^""]*""$", "String");
             ReservedWords = new ScanningPhase(@"^(read|write|repeat|until|if|elseif|else|return|then|endl)$", "Reserved Word");
             DataTypes = new ScanningPhase(@"^(int|float|string|char)$", "DataType");
-            CommentStatement = new ScanningPhase(@"^\/\*(.*|\s*)*\*\/$", "Comment");
+            CommentStatement = new ScanningPhase(@"/\*(.|\s)*\*/", "Comment");
             Identifier = new ScanningPhase(@"^[a-zA-Z_][a-zA-Z0-9_]*$", "Identifier");
             Function = new ScanningPhase(String.Format(@"^{0}\(({0}\s*(,\s* {0})*)?\)$", Identifier.getRegularExpression()), "Function");
-            Semicolon = new ScanningPhase(@";", "Semicolon");
-            Comma = new ScanningPhase(@",", "Comma");
-            LParentheses = new ScanningPhase(@"\(", "Left Parentheses");
-            RParentheses = new ScanningPhase(@"\)", "Right Parentheses");
-            LBraces = new ScanningPhase(@"{", "Left Braces");
-            RBraces = new ScanningPhase(@"}", "Right Braces");
+            Semicolon = new ScanningPhase(@"^;$", "Semicolon");
+            Comma = new ScanningPhase(@"^,$", "Comma");
+            LParentheses = new ScanningPhase(@"^\($", "Left Parentheses");
+            RParentheses = new ScanningPhase(@"^\)$", "Right Parentheses");
+            LBraces = new ScanningPhase(@"^{$", "Left Braces");
+            RBraces = new ScanningPhase(@"^}$", "Right Braces");
             Assign = new ScanningPhase("^:=$", "Assign Operator");
             ArithmeticOperators = new ScanningPhase(@"^(\+|\-|\*|/)$", "Arithmentic Operator");
             Equation = new ScanningPhase(String.Format(@"^\(*{0}\)*(\s*{1}\s*{0}\)*)+$", Number.getRegularExpression(), ArithmeticOperators.getRegularExpression()), "Equation");
@@ -62,28 +62,38 @@ namespace Tiny_Langauge_Compiler
                     line++;
                     continue;
                 }
-     
-                 if (i < code.Length-1 && currentChar == '/' && code[i+1] == '*')
-                  {
-                    
-                        i+=2;
-                        lexeme += "/*";
-                        while (i < code.Length)
-                        {
-                            
-                            if (code[i] == '*' && i < code.Length-1 && code[i+1] == '/')
-                            {
-                                lexeme += "*/";
-                                i++;
-                                break;
-                            }
-                            lexeme += code[i];
-                            i++;
-                            
-                        }
-                        i--;
 
-                 }
+                if (i < code.Length - 1 && currentChar == '/' && code[i + 1] == '*')
+                {
+                    bool commentFinished = false;
+                    lexeme += "/*";
+                    i += 2;
+                    while (i < code.Length)
+                    {
+                        if (i < code.Length - 1 && code[i] == '*' && code[i + 1] == '/')
+                        {
+                            lexeme += "*/";
+                            i++;
+                            commentFinished = true;
+                            break;
+                        }
+                        currentChar = code[i];
+                        lexeme += currentChar;
+                        i++;
+                    }
+                    if(!commentFinished)
+                    {
+                        errorList.Add("Line " + line + " : Unrecognized token : " + lexeme);
+                        continue;
+                    }
+                   
+
+                }
+                else if (i < code.Length - 1 && currentChar == '*' && code[i + 1] == '/')
+                {
+                    i++;
+                    lexeme += "*/";
+                }
                 else if (currentChar == '(')
                 {
                     openParentheses++;
@@ -94,12 +104,12 @@ namespace Tiny_Langauge_Compiler
                     lexeme += currentChar;
                     if (openParentheses == 0)
                     {
-                        errorList.Add("Line "+ line + " : Close Parenthese without opening");
+                        errorList.Add("Line " + line + " : Close Parenthese without opening");
                     }
                     else openParentheses--;
 
                 }
-                else  if (currentChar == '{')
+                else if (currentChar == '{')
                 {
                     openBraces++;
                     lexeme += currentChar;
@@ -110,7 +120,7 @@ namespace Tiny_Langauge_Compiler
                     if (openBraces == 0)
                     {
                         //error
-                        errorList.Add("Line "+ line + " : Close braces without opening");
+                        errorList.Add("Line " + line + " : Close braces without opening");
                     }
                     else openBraces--;
 
@@ -119,33 +129,45 @@ namespace Tiny_Langauge_Compiler
                 {
                     while ((char.IsLetter(currentChar) || currentChar == '_') && i < code.Length)
                     {
+                        currentChar = code[i];
                         lexeme += currentChar;
-                        currentChar = code[++i];
+                        i++;
+                        if (i < code.Length)
+                            currentChar = code[i];
+
                     }
                     i--;
                 }
-                else if(char.IsDigit(currentChar))
+                else if (char.IsDigit(currentChar))
                 {
-                    while(char.IsDigit(currentChar) || currentChar == '.')
+                    while ((char.IsDigit(currentChar) || currentChar == '.') && i < code.Length)
                     {
+                        currentChar = code[i];
                         lexeme += currentChar;
-                        currentChar = code[++i];
+                        i++;
+                        if (i < code.Length)
+                            currentChar = code[i];
                     }
                     i--;
                 }
                 else
                 {
-                    
-                     if(operators.Contains<char>(currentChar))
+
+                    if (operators.Contains<char>(currentChar))
                     {
                         lexeme += currentChar;
-                    }else if(conditionalOperators.Contains(currentChar.ToString()))
+                    }
+                    else if (conditionalOperators.Contains(currentChar.ToString()))
                     {
                         lexeme += currentChar;
                         if (i < code.Length - 1)
-                            if (conditionalOperators.Contains(lexeme + code[++i]))
+                            if (conditionalOperators.Contains(lexeme + code[i + 1]))
+                            {
+                                i++;
                                 lexeme += code[i];
-                    }else if(currentChar == ':')
+                            }
+                    }
+                    else if (currentChar == ':')
                     {
                         if (i < code.Length - 1 && code[++i] == '=')
                             lexeme += assignOperator;
@@ -154,13 +176,13 @@ namespace Tiny_Langauge_Compiler
                             lexeme += currentChar;
                             i--;
                         }
-                    } 
-                     else if (currentChar == '"')
+                    }
+                    else if (currentChar == '"')
                     {
-                       lexeme += code[i];
+                        lexeme += code[i];
                         i++;
                         while (i < code.Length && code[i] != '\n')
-                        {  
+                        {
                             if (code[i] == '"')
                             {
                                 lexeme += code[i];
@@ -170,9 +192,9 @@ namespace Tiny_Langauge_Compiler
                             lexeme += code[i];
                             i++;
                         }
-                        if (code[i] == '\n')line++;
+                        if (i < code.Length && code[i] == '\n') line++;
                     }
-                   
+
                     else
                     {
                         lexeme += currentChar;
@@ -201,6 +223,7 @@ namespace Tiny_Langauge_Compiler
                 tokensDataTable.Rows.Add(match.Value, CommentStatement.getType());
                 return;
             }
+            
             //Identifier Phase
             match = Identifier.Match(word);
             if (match.Success && !DataTypes.isMatch(match.Value) && !ReservedWords.isMatch(match.Value))
