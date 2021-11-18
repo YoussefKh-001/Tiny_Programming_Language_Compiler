@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.Data;
+using System.Diagnostics;
 namespace Tiny_Langauge_Compiler
 {
     class Scanner
@@ -18,6 +19,7 @@ namespace Tiny_Langauge_Compiler
         char[] operators = { '+', '-', '/', '*'};
         string[] conditionalOperators = { "=", "<", "<=", ">=", "<>" , ">"};
         string assignOperator = ":="; 
+        public List<string>errorList;
         public Scanner()
         {
             tokensDataTable = new DataTable();
@@ -28,34 +30,92 @@ namespace Tiny_Langauge_Compiler
             StringInQuotes = new ScanningPhase(@"^""[^""]*""$", "String");
             ReservedWords = new ScanningPhase(@"^(read|write|repeat|until|if|elseif|else|return|then|endl)$", "Reserved Word");
             DataTypes = new ScanningPhase(@"^(int|float|string|char)$", "DataType");
-            CommentStatement = new ScanningPhase(@"^\/\*([^\*][^\/]|\s*)*\*\/$", "Comment");
+            CommentStatement = new ScanningPhase(@"^\/\*(.*|\s*)*\*\/$", "Comment");
             Identifier = new ScanningPhase(@"^[a-zA-Z_][a-zA-Z0-9_]*$", "Identifier");
             Function = new ScanningPhase(String.Format(@"^{0}\(({0}\s*(,\s* {0})*)?\)$", Identifier.getRegularExpression()), "Function");
-            Semicolon = new ScanningPhase(";", "Semicolon");
-            Comma = new ScanningPhase(",", "Comma");
+            Semicolon = new ScanningPhase(@";", "Semicolon");
+            Comma = new ScanningPhase(@",", "Comma");
             LParentheses = new ScanningPhase(@"\(", "Left Parentheses");
             RParentheses = new ScanningPhase(@"\)", "Right Parentheses");
             LBraces = new ScanningPhase(@"{", "Left Braces");
             RBraces = new ScanningPhase(@"}", "Right Braces");
             Assign = new ScanningPhase("^:=$", "Assign Operator");
-            ArithmeticOperators = new ScanningPhase(@"^\+|\-|\*|/$", "Arithmentic Operator");
+            ArithmeticOperators = new ScanningPhase(@"^(\+|\-|\*|/)$", "Arithmentic Operator");
             Equation = new ScanningPhase(String.Format(@"^\(*{0}\)*(\s*{1}\s*{0}\)*)+$", Number.getRegularExpression(), ArithmeticOperators.getRegularExpression()), "Equation");
             ConditionalOperators = new ScanningPhase(@"^(<|>|=|(<>)|(<=)|(>=))$", "Conditional Operator");
+            errorList = new List<string>();
         }
 
         public void StartScan(String code)
         {
+            int openParentheses = 0 , openBraces = 0;
+            int line = 1;
+            errorList.Clear();
             for (int i = 0; i < code.Length; i++)
             {
                 String lexeme = "";
                 char currentChar = code[i];
-                if (currentChar == ' ' || currentChar == '\n' || currentChar == '\r' || currentChar == '\t')
+                if (currentChar == ' ' || currentChar == '\r' || currentChar == '\t')
                     continue;
-
-                if (currentChar == '(' || currentChar == ')' || currentChar == '{' || currentChar == '}' || currentChar == ',' || currentChar == ';')
+                if(currentChar == '\n')
+                {
+                    line++;
                     continue;
+                }
+     
+                 if (i < code.Length-1 && currentChar == '/' && code[i+1] == '*')
+                  {
+                    
+                        i+=2;
+                        lexeme += "/*";
+                        while (i < code.Length)
+                        {
+                            
+                            if (code[i] == '*' && i < code.Length-1 && code[i+1] == '/')
+                            {
+                                lexeme += "*/";
+                                i++;
+                                break;
+                            }
+                            lexeme += code[i];
+                            i++;
+                            
+                        }
+                        i--;
 
-                if (char.IsLetter(currentChar) || currentChar == '_')
+                 }
+                else if (currentChar == '(')
+                {
+                    openParentheses++;
+                    lexeme += currentChar;
+                }
+                else if (currentChar == ')')
+                {
+                    lexeme += currentChar;
+                    if (openParentheses == 0)
+                    {
+                        errorList.Add("Line "+ line + " : Close Parenthese without opening");
+                    }
+                    else openParentheses--;
+
+                }
+                else  if (currentChar == '{')
+                {
+                    openBraces++;
+                    lexeme += currentChar;
+                }
+                else if (currentChar == '}')
+                {
+                    lexeme += currentChar;
+                    if (openBraces == 0)
+                    {
+                        //error
+                        errorList.Add("Line "+ line + " : Close braces without opening");
+                    }
+                    else openBraces--;
+
+                }
+                else if (char.IsLetter(currentChar) || currentChar == '_')
                 {
                     while ((char.IsLetter(currentChar) || currentChar == '_') && i < code.Length)
                     {
@@ -75,7 +135,8 @@ namespace Tiny_Langauge_Compiler
                 }
                 else
                 {
-                    if(operators.Contains<char>(currentChar))
+                    
+                     if(operators.Contains<char>(currentChar))
                     {
                         lexeme += currentChar;
                     }else if(conditionalOperators.Contains(currentChar.ToString()))
@@ -93,21 +154,55 @@ namespace Tiny_Langauge_Compiler
                             lexeme += currentChar;
                             i--;
                         }
+                    } 
+                     else if (currentChar == '"')
+                    {
+                       lexeme += code[i];
+                        i++;
+                        while (i < code.Length && code[i] != '\n')
+                        {  
+                            if (code[i] == '"')
+                            {
+                                lexeme += code[i];
+                                i++;
+                                break;
+                            }
+                            lexeme += code[i];
+                            i++;
+                        }
+                        if (code[i] == '\n')line++;
                     }
+                   
                     else
                     {
                         lexeme += currentChar;
                     }
 
                 }
+
                 if(lexeme.Length > 0)
-                    ScanWord(lexeme);
+                    ScanWord(lexeme, line);
+            }
+            if (openBraces > 0)
+            {
+                errorList.Add("There are open braces that haven't been closed");
+            }
+            if (openParentheses > 0)
+            {
+                errorList.Add("There are open Parentheses that haven't been closed");
             }
         }
-        public void ScanWord(String word)
+        public void ScanWord(String word, int line)
         {
+            //Comment
+            Match match = CommentStatement.Match(word);
+            if (match.Success)
+            {
+                tokensDataTable.Rows.Add(match.Value, CommentStatement.getType());
+                return;
+            }
             //Identifier Phase
-            Match match = Identifier.Match(word);
+            match = Identifier.Match(word);
             if (match.Success && !DataTypes.isMatch(match.Value) && !ReservedWords.isMatch(match.Value))
             {
                 tokensDataTable.Rows.Add(match.Value, Identifier.getType());
@@ -152,6 +247,48 @@ namespace Tiny_Langauge_Compiler
                 tokensDataTable.Rows.Add(match.Value, ConditionalOperators.getType());
                 return;
             }
+            //semicolon
+            match = Semicolon.Match(word);
+            if (match.Success)
+            {
+                tokensDataTable.Rows.Add(match.Value, Semicolon.getType());
+                return;
+            }
+            //comma
+            match = Comma.Match(word);
+            if (match.Success)
+            {
+                tokensDataTable.Rows.Add(match.Value, Comma.getType());
+                return;
+            }
+            //openparenthese
+            match = LParentheses.Match(word);
+            if (match.Success)
+            {
+                tokensDataTable.Rows.Add(match.Value, LParentheses.getType());
+                return;
+            }
+            //closeparenthese
+            match = RParentheses.Match(word);
+            if (match.Success)
+            {
+                tokensDataTable.Rows.Add(match.Value, RParentheses.getType());
+                return;
+            }
+            //openBraces
+            match = LBraces.Match(word);
+            if (match.Success)
+            {
+                tokensDataTable.Rows.Add(match.Value, LBraces.getType());
+                return;
+            }
+            //close braces
+            match = RBraces.Match(word);
+            if (match.Success)
+            {
+                tokensDataTable.Rows.Add(match.Value, RBraces.getType());
+                return;
+            }
 
             //Assign Operator
             match = Assign.Match(word);
@@ -160,18 +297,17 @@ namespace Tiny_Langauge_Compiler
                 tokensDataTable.Rows.Add(match.Value, Assign.getType());
                 return;
             }
-            tokensDataTable.Rows.Add(word, "Unrecognized");
-        }
-
-        public void ScanSpecial(char c)
-        {
+            
+             //String
+            match = StringInQuotes.Match(word);
+            if (match.Success)
+            {
+                tokensDataTable.Rows.Add(match.Value, StringInQuotes.getType());
+                return;
+            }
+            errorList.Add("Line "+ line + " : Unrecognized token : " +  word);
             
         }
-
-
-
-
-
 
         /*public static String DeleteComments(String text)
         {

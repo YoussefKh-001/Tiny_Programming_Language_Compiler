@@ -28,6 +28,12 @@ namespace Tiny_Langauge_Compiler
             MatchCollection matches;
             Scanner scanner = new Scanner();
             scanner.StartScan(Code);
+            ErrorListBox.Items.Clear();
+            foreach(string error in scanner.errorList)
+            {
+                ErrorListBox.Items.Add(error);
+            }
+            //ErrorListBox.Items.Add(scanner.errorList);
             /*for(int i = 0;i<Code.Length;i++)
             {
                 String CurrentLine = Code[i];
