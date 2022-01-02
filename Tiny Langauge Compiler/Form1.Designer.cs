@@ -35,6 +35,7 @@ namespace Tiny_Langauge_Compiler
             this.ClearTokensBtn = new System.Windows.Forms.Button();
             this.ErrorListBox = new System.Windows.Forms.ListBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.ParseTree = new System.Windows.Forms.TreeView();
             ((System.ComponentModel.ISupportInitialize)(this.TokensGridView)).BeginInit();
             this.SuspendLayout();
             // 
@@ -52,14 +53,14 @@ namespace Tiny_Langauge_Compiler
             this.TokensGridView.Location = new System.Drawing.Point(638, 9);
             this.TokensGridView.Name = "TokensGridView";
             this.TokensGridView.RowHeadersWidth = 51;
-            this.TokensGridView.Size = new System.Drawing.Size(408, 361);
+            this.TokensGridView.Size = new System.Drawing.Size(331, 361);
             this.TokensGridView.TabIndex = 1;
             // 
             // CompileBtn
             // 
             this.CompileBtn.Location = new System.Drawing.Point(638, 387);
             this.CompileBtn.Name = "CompileBtn";
-            this.CompileBtn.Size = new System.Drawing.Size(198, 75);
+            this.CompileBtn.Size = new System.Drawing.Size(161, 75);
             this.CompileBtn.TabIndex = 2;
             this.CompileBtn.Text = "Compile";
             this.CompileBtn.UseVisualStyleBackColor = true;
@@ -67,9 +68,9 @@ namespace Tiny_Langauge_Compiler
             // 
             // ClearTokensBtn
             // 
-            this.ClearTokensBtn.Location = new System.Drawing.Point(848, 387);
+            this.ClearTokensBtn.Location = new System.Drawing.Point(808, 387);
             this.ClearTokensBtn.Name = "ClearTokensBtn";
-            this.ClearTokensBtn.Size = new System.Drawing.Size(198, 75);
+            this.ClearTokensBtn.Size = new System.Drawing.Size(161, 75);
             this.ClearTokensBtn.TabIndex = 3;
             this.ClearTokensBtn.Text = "Clear Tokens";
             this.ClearTokensBtn.UseVisualStyleBackColor = true;
@@ -79,7 +80,7 @@ namespace Tiny_Langauge_Compiler
             this.ErrorListBox.FormattingEnabled = true;
             this.ErrorListBox.Location = new System.Drawing.Point(8, 496);
             this.ErrorListBox.Name = "ErrorListBox";
-            this.ErrorListBox.Size = new System.Drawing.Size(1037, 147);
+            this.ErrorListBox.Size = new System.Drawing.Size(961, 147);
             this.ErrorListBox.TabIndex = 4;
             // 
             // label1
@@ -91,9 +92,17 @@ namespace Tiny_Langauge_Compiler
             this.label1.TabIndex = 5;
             this.label1.Text = "Error List";
             // 
+            // ParseTree
+            // 
+            this.ParseTree.Location = new System.Drawing.Point(975, 7);
+            this.ParseTree.Name = "ParseTree";
+            this.ParseTree.Size = new System.Drawing.Size(530, 636);
+            this.ParseTree.TabIndex = 6;
+            // 
             // Form1
             // 
-            this.ClientSize = new System.Drawing.Size(1053, 655);
+            this.ClientSize = new System.Drawing.Size(1513, 655);
+            this.Controls.Add(this.ParseTree);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.ErrorListBox);
             this.Controls.Add(this.ClearTokensBtn);
@@ -116,6 +125,7 @@ namespace Tiny_Langauge_Compiler
         private System.Windows.Forms.Button ClearTokensBtn;
         private System.Windows.Forms.ListBox ErrorListBox;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TreeView ParseTree;
     }
 }
 

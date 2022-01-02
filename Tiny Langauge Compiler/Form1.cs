@@ -25,85 +25,23 @@ namespace Tiny_Langauge_Compiler
            
             String Code = String.Join(" ", CodeTextBox.Text);
 
-            MatchCollection matches;
             Scanner scanner = new Scanner();
             scanner.StartScan(Code);
+            Parser parser = new Parser();
+            parser.StartParsing(scanner.Tokens);
             ErrorListBox.Items.Clear();
             foreach(string error in scanner.errorList)
             {
                 ErrorListBox.Items.Add(error);
             }
-            //ErrorListBox.Items.Add(scanner.errorList);
-            /*for(int i = 0;i<Code.Length;i++)
+            foreach (string error in parser.Error_List)
             {
-                String CurrentLine = Code[i];
-                
-                Match CommentMatch = CommentStatement.Match(CurrentLine);
-                if (CommentMatch.Success)
-                    tokensDataTable.Rows.Add(CommentMatch.Value, CommentStatement.getType());
-
-                CurrentLine = Scanner.DeleteComments(CurrentLine);
-                String CurrentLineWithStrings = CurrentLine;
-                CurrentLine = Scanner.DeleteStrings(CurrentLine);
-
-                String[] splittedWords = CurrentLine.Split(' ');
-                foreach (String word in splittedWords)
-                {
-                    //Left Braces
-                    Match match = LBraces.Match(word);
-                    if (match.Success)
-                        tokensDataTable.Rows.Add(match.Value, LBraces.getType());
-                    //Identifier Phase
-                    match = Identifier.Match(word);
-                    if (match.Success && !DataTypes.isMatch(match.Value) && !ReservedWords.isMatch(match.Value))
-                        tokensDataTable.Rows.Add(match.Value, Identifier.getType());
-                    //Left Parentheses
-                    match = LParentheses.Match(word);
-                    if (match.Success)
-                        tokensDataTable.Rows.Add(match.Value, LParentheses.getType());
-                    //DataTypes Phase
-                    match = DataTypes.Match(word);
-                    if(match.Success)
-                        tokensDataTable.Rows.Add(match.Value, DataTypes.getType() + "(" + match.Value.ToUpper() + ")");
-                    //Reserved Words Phase
-                    match = ReservedWords.Match(word);
-                    if (match.Success)
-                        tokensDataTable.Rows.Add(match.Value, ReservedWords.getType());
-                    
-                    //Comma Phase
-                    match = Comma.Match(word);
-                    if (match.Success)
-                        tokensDataTable.Rows.Add(match.Value, Comma.getType());
-                    //Right Parentheses
-                    match = RParentheses.Match(word);
-                    if (match.Success)
-                        tokensDataTable.Rows.Add(match.Value, RParentheses.getType());
-                    //Assign Operator
-                    match = Assign.Match(word);
-                    if (match.Success)
-                        tokensDataTable.Rows.Add(match.Value, Assign.getType());
-                    
-                }
-
-                Match StringMatch = StringInQuotes.Match(CurrentLineWithStrings);
-                if (StringMatch.Success)
-                    tokensDataTable.Rows.Add(StringMatch.Value, StringInQuotes.getType());
-
-                //SemiColon Phase
-                Match EndingMatch = Semicolon.Match(CurrentLine);
-                if (EndingMatch.Success)
-                    tokensDataTable.Rows.Add(EndingMatch.Value, Semicolon.getType());
-                //Right Braces
-                EndingMatch = RBraces.Match(CurrentLine);
-                if (EndingMatch.Success)
-                    tokensDataTable.Rows.Add(EndingMatch.Value, RBraces.getType());
-            }*/
-            
-            
-            
-
+                ErrorListBox.Items.Add(error);
+            }
 
             TokensGridView.DataSource = scanner.tokensDataTable;
+
+            ParseTree.Nodes.Add(Parser.PrintParseTree(parser.root));
         }
 
         private void Form1_Load(object sender, EventArgs e)

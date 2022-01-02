@@ -23,12 +23,17 @@ namespace Tiny_Langauge_Compiler
         List<Token> TokenStream;
         public Node root;
         public List<string> Error_List;
+
+        public Parser()
+        {
+            Error_List = new List<string>();
+        }
         public Node StartParsing(List<Token> TokenStream)
         {
             this.InputPointer = 0;
             this.TokenStream = TokenStream;
             root = new Node("Program");
-            root.Children.Add(Program());
+            root.Children.Add(FunctionCall());
             return root;
         }
         
