@@ -302,7 +302,10 @@ namespace Tiny_Langauge_Compiler
             if (match.Success && !DataTypes.isMatch(match.Value) && !ReservedWords.isMatch(match.Value))
             {
                 tokensDataTable.Rows.Add(match.Value, Identifier.getType());
-                Tokens.Add(new Token(match.Value, Token_Class.Idenifier));
+                if(match.Value=="main")
+                    Tokens.Add(new Token(match.Value, Token_Class.Main));
+                else
+                    Tokens.Add(new Token(match.Value, Token_Class.Idenifier));
                 return;
             }
             //DataTypes Phase

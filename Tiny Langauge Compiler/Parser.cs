@@ -23,6 +23,11 @@ namespace Tiny_Langauge_Compiler
         List<Token> TokenStream;
         public Node root;
         public List<string> Error_List;
+
+        public Parser()
+        {
+            Error_List = new List<string>();
+        }
         public Node StartParsing(List<Token> TokenStream)
         {
             this.InputPointer = 0;
@@ -37,8 +42,8 @@ namespace Tiny_Langauge_Compiler
             // FunctionStatements MainFunction
             Node program = new Node("Program");
 
-            program.Children.Add(FunctionStatments());
-           
+            program.Children.Add(MainFunction());
+            //program.Children.Add(FunctionStatements());
 
             return null;
         }
@@ -238,7 +243,7 @@ namespace Tiny_Langauge_Compiler
             }
             else if (TokenStream[InputPointer].token_type == Token_Class.Idenifier || TokenStream[InputPointer].token_type == Token_Class.Constant)
             {
-                expression.Children.Add(Term());
+                expression.Children.Add(Equation());
             }
             else
             {
@@ -255,6 +260,7 @@ namespace Tiny_Langauge_Compiler
 
             declarationStatement.Children.Add(DataType());
             declarationStatement.Children.Add(IdentifiersList());
+            declarationStatement.Children.Add(match(Token_Class.Semicolon));
 
             return declarationStatement;
         }
@@ -556,7 +562,6 @@ namespace Tiny_Langauge_Compiler
 
             functionBody.Children.Add(match(Token_Class.LCurlyBraces));
             functionBody.Children.Add(Statements());
-            functionBody.Children.Add(ReadStatement());
             functionBody.Children.Add(match(Token_Class.RCurlyBraces));
 
             return functionBody;
@@ -580,25 +585,39 @@ namespace Tiny_Langauge_Compiler
             if (TokenStream[InputPointer].token_type == Token_Class.Write)
             {
                 statements.Children.Add(WriteStatement());
+                statements.Children.Add(Statements());
             }else if (TokenStream[InputPointer].token_type == Token_Class.Read)
             {
                 statements.Children.Add(ReadStatement());
-            }else if (TokenStream[InputPointer].token_type == Token_Class.Idenifier)
+                statements.Children.Add(Statements());
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.Idenifier)
             {
                 statements.Children.Add(AssignmentStatement());
-            }else if (TokenStream[InputPointer].token_type == Token_Class.Return)
+                statements.Children.Add(Statements());
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.Return)
             {
                 statements.Children.Add(ReturnStatement());
+                statements.Children.Add(Statements());
             } else if (TokenStream[InputPointer].token_type == Token_Class.Repeat)
             {
                 statements.Children.Add(RepeatStatement());
-            }else if (TokenStream[InputPointer].token_type == Token_Class.If)
+                statements.Children.Add(Statements());
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.If)
             {
                 statements.Children.Add(IfStatement());
+                statements.Children.Add(Statements());
+            }
+            else if(TokenStream[InputPointer].token_type == Token_Class.Integer)
+            {
+                statements.Children.Add(DeclarationStatement());
+                statements.Children.Add(Statements());
             }
             else
             {
-                statements.Children.Add(DeclarationStatement());
+                return null;
             }
 
             return statements;
@@ -611,12 +630,14 @@ namespace Tiny_Langauge_Compiler
 
             mainFunction.Children.Add(DataType());
             mainFunction.Children.Add(match(Token_Class.Main));
+            mainFunction.Children.Add(match(Token_Class.LParanthesis));
+            mainFunction.Children.Add(match(Token_Class.RParanthesis));
             mainFunction.Children.Add(FunctionBody());
 
             return mainFunction;
         }
 
-        Node FunctionStatments()
+        Node FunctionStatements()
         {
             // FunctionStatment | epsilon
             Node functionStatements = new Node("Function Statements");
@@ -624,6 +645,7 @@ namespace Tiny_Langauge_Compiler
             if(TokenStream[InputPointer].token_type == Token_Class.Integer || TokenStream[InputPointer].token_type == Token_Class.Float || TokenStream[InputPointer].token_type == Token_Class.String)
             {
                 functionStatements.Children.Add(FunctionStatement());
+                
             }
             else
             {
