@@ -142,6 +142,7 @@ namespace Tiny_Langauge_Compiler
 
             return mathExpression;
         }
+        
         Node MathExpressionDash()
         {
             // epsilon | MultOp MathExpression MathExpression’
@@ -186,6 +187,7 @@ namespace Tiny_Langauge_Compiler
             }
             return mathTerm;
         }
+        
         Node EquationDash()
         {
             // AddOp MathExpression | epsilon
@@ -220,8 +222,9 @@ namespace Tiny_Langauge_Compiler
             
             return assignmentStatment;
         }
+
        Node Expression()
-        {
+       {
             // Term | string | Equation
             Node expression = new Node ("Expression");
             
@@ -239,8 +242,208 @@ namespace Tiny_Langauge_Compiler
             }
 
             return expression;
+       }
+       
+        Node DeclarationStatement()
+        {
+            // DataType IdentifiersList
+            Node declarationStatement = new Node("Declaration Statement");
+
+            declarationStatement.Children.Add(DataType());
+            declarationStatement.Children.Add(IdentifiersList());
+
+            return declarationStatement;
         }
-        
+
+        Node DataType()
+        {
+            // int | float | string
+            Node dataType = new Node("DataType");
+
+            if (TokenStream[InputPointer].token_type == Token_Class.Integer)
+            {
+                dataType.Children.Add(match(Token_Class.Integer));
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.Float)
+            {
+                dataType.Children.Add(match(Token_Class.Float));
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.String)
+            {
+                dataType.Children.Add(match(Token_Class.String));
+            }
+
+            return dataType;
+
+        }
+
+        Node WriteStatement()
+        {
+            // write WriteTerminal;
+            Node writeStatement = new Node("Write Statement");
+
+            writeStatement.Children.Add(match(Token_Class.Write));
+            writeStatement.Children.Add(WriteTerminal());
+            writeStatement.Children.Add(match(Token_Class.Semicolon));
+
+            return writeStatement;
+        }
+
+        Node WriteTerminal()
+        {
+            // Expression | endl
+            Node writeTeminal = new Node("Write Terminal");
+
+            if (TokenStream[InputPointer].token_type == Token_Class.Endl)
+                writeTeminal.Children.Add(match(Token_Class.Endl));
+            else
+                writeTeminal.Children.Add(Expression());
+
+            return writeTeminal;
+        }
+
+        Node ReadStatement()
+        {
+            // read identifier;
+            Node readStatement = new Node("Read Statement");
+
+            readStatement.Children.Add(match(Token_Class.Read));
+            readStatement.Children.Add(match(Token_Class.Idenifier));
+            readStatement.Children.Add(match(Token_Class.Semicolon));
+
+            return readStatement;
+        }
+
+        Node ConditionStatement()
+        {
+            // Condition ConditionStatement’
+            Node conditionStatement = new Node("Condition Statement");
+
+            conditionStatement.Children.Add(Condition());
+            conditionStatement.Children.Add(ConditionStatementDash());
+
+            return conditionStatement;
+        }
+
+        Node ConditionStatementDash()
+        {
+            // BoolOp Condition | epsilon
+            Node conditionStatementDash = new Node("Conidtion Statement Dash");
+
+            if (TokenStream[InputPointer].token_type == Token_Class.ANDOp && TokenStream[InputPointer].token_type == Token_Class.OROp)
+            {
+                conditionStatementDash.Children.Add(BoolOeprator());
+                conditionStatementDash.Children.Add(Condition());
+            }else
+            {
+                return null;
+            }
+
+            return conditionStatementDash;
+
+        }
+        Node Condition()
+        {
+            // Term ConditionalOperator Term | (ConditionStatement) | ConditionStatement
+            Node condition = new Node("Condition");
+
+            if (TokenStream[InputPointer].token_type == Token_Class.LParanthesis)
+            {
+                condition.Children.Add(match(Token_Class.LParanthesis));
+                condition.Children.Add(ConditionStatement());
+                condition.Children.Add(match(Token_Class.RParanthesis));
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.Idenifier || TokenStream[InputPointer].token_type == Token_Class.Constant || TokenStream[InputPointer].token_type == Token_Class.Idenifier && TokenStream[InputPointer + 1].token_type == Token_Class.LParanthesis)
+            {
+                condition.Children.Add(Term());
+                condition.Children.Add(ConditionalOperator());
+                condition.Children.Add(Term());
+            }
+            else
+            {
+                condition.Children.Add(ConditionStatement());
+            }
+
+            return condition;
+        }
+
+        Node ConditionalOperator()
+        {
+            // > | < | <> | =
+            Node conditionalOperator = new Node("Conditional Operator");
+
+            if (TokenStream[InputPointer].token_type == Token_Class.EqualOp)
+            {
+                conditionalOperator.Children.Add(match(Token_Class.EqualOp));
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.GreaterThanOp)
+            {
+                conditionalOperator.Children.Add(match(Token_Class.GreaterThanOp));
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.LessThanOp)
+            {
+                conditionalOperator.Children.Add(match(Token_Class.LessThanOp));
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.NotEqualOp)
+            {
+                conditionalOperator.Children.Add(match(Token_Class.NotEqualOp));
+            }
+
+            return conditionalOperator;
+        }
+
+        Node BoolOeprator()
+        {
+            // && | ||
+            Node boolOperator = new Node("Boolean Operator");
+
+            if (TokenStream[InputPointer].token_type == Token_Class.ANDOp && TokenStream[InputPointer + 1].token_type == Token_Class.ANDOp)
+            {
+                boolOperator.Children.Add(match(Token_Class.ANDOp));
+                boolOperator.Children.Add(match(Token_Class.ANDOp));
+            }else if (TokenStream[InputPointer].token_type == Token_Class.OROp && TokenStream[InputPointer + 1].token_type == Token_Class.OROp)
+            {
+                boolOperator.Children.Add(match(Token_Class.OROp));
+                boolOperator.Children.Add(match(Token_Class.OROp));
+            }
+
+            return boolOperator;
+        }
+
+        Node ReturnStatement()
+        {
+            // return Expression;
+            Node returnStatement = new Node("Return Statement");
+
+            returnStatement.Children.Add(match(Token_Class.Return));
+            returnStatement.Children.Add(Expression());
+            returnStatement.Children.Add(match(Token_Class.Semicolon));
+
+            return returnStatement;
+        }
+
+        Node Statements()
+        {
+            // WriteStatement| ReadStatement| AssignmentStatement | DeclarationStatement | ReturnStatement | IfStatement | RepeatStatement
+            Node statements = new Node("Statements");
+
+            if (TokenStream[InputPointer].token_type == Token_Class.Write)
+            {
+                statements.Children.Add(WriteStatement());
+            }else if (TokenStream[InputPointer].token_type == Token_Class.Read)
+            {
+                statements.Children.Add(ReadStatement());
+            }else if (TokenStream[InputPointer].token_type == Token_Class.Idenifier)
+            {
+                statements.Children.Add(AssignmentStatement());
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.Return)
+            {
+                statements.Children.Add(ReturnStatement());
+            }
+            
+
+        }
         public Node match(Token_Class ExpectedToken)
         {
 
