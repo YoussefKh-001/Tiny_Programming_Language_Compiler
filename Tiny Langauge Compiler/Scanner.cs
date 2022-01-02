@@ -14,7 +14,7 @@ public enum Token_Class
     Dot, Semicolon, Comma, LParanthesis, RParanthesis, EqualOp, LessThanOp,
     GreaterThanOp, NotEqualOp, PlusOp, MinusOp, MultiplyOp, DivideOp,
     Idenifier, Constant, Repeat, ElseIf, Return, Endl, GreaterThanEqOp, LessThanEqOp, ANDOp, OROp,
-    LCurlyBraces, RCurlyBraces, AssignOperator, 
+    LCurlyBraces, RCurlyBraces, AssignOperator,Main 
 }
 
 namespace Tiny_Langauge_Compiler
