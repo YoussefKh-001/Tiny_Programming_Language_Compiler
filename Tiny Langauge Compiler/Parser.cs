@@ -38,11 +38,12 @@ namespace Tiny_Langauge_Compiler
 
             return null;
         }
-        //Function Call
+        
         Node FunctionCall()
         {
-            //Done
+            // identifier (IdentifiersList)
             Node functionCall = new Node("Function Call");
+
             functionCall.Children.Add(match(Token_Class.Idenifier));
             functionCall.Children.Add(match(Token_Class.LParanthesis));
             functionCall.Children.Add(IdentifiersList());
@@ -53,22 +54,24 @@ namespace Tiny_Langauge_Compiler
 
         Node IdentifiersList()
         {
-            //Done
-            Node identifierList = new Node("Identifier List");
+            // identifier Parameters | epsilon
+            Node identifiersList = new Node("Identifiers List");
+            
             if (TokenStream[InputPointer].token_type == Token_Class.Idenifier)
             {
-                identifierList.Children.Add(match(Token_Class.Idenifier));
-                identifierList.Children.Add(Parameters());
+                identifiersList.Children.Add(match(Token_Class.Idenifier));
+                identifiersList.Children.Add(Parameters());
             }else
             {
                 return null;
             }
-            return identifierList;
+            
+            return identifiersList;
         }
 
         Node Parameters()
         {
-            //Done
+            // ,identifier Parameters | epsilon
             Node parameters = new Node("Parameters");
 
             if (TokenStream[InputPointer].token_type == Token_Class.Comma)
@@ -84,47 +87,47 @@ namespace Tiny_Langauge_Compiler
             
             return parameters;
         }
-        //TERM 
+        
         Node Term()
         {
-            //Done
-            //identifier | Number | Function Call
+            // identifier | number | FunctionCall
             Node term = new Node("Term");
-            if (TokenStream[InputPointer].token_type == Token_Class.Idenifier && TokenStream[InputPointer+1].token_type == Token_Class.LParanthesis)
+
+            if (TokenStream[InputPointer].token_type == Token_Class.Idenifier && TokenStream[InputPointer + 1].token_type == Token_Class.LParanthesis)
             {
-                 //function call
+                 // Functioncall
                 term.Children.Add(FunctionCall());
             }
             if (TokenStream[InputPointer].token_type == Token_Class.Idenifier)
             {
-                //Identfier
                 term.Children.Add(match(Token_Class.Idenifier));
             }
             else if (TokenStream[InputPointer].token_type == Token_Class.Constant)
             {
-                //Number
+                // Number
                 term.Children.Add(match(Token_Class.Constant));
             }
+
             return term;
         }
-        //Equation
+        
         Node Equation()
         {
-            //Done
             //MathExpression Equation’
             Node equation = new Node("Equation");
-            //MathExpression
+         
             equation.Children.Add(MathExpression());
-            //EquationDash
             equation.Children.Add(EquationDash());
+            
             return equation;
         }
+        
         Node MathExpression()
         {
-            //Done
-            //Equation MathExpression' || MathTerm MathExpression’
+            // Equation MathExpression' || MathTerm MathExpression’
             Node mathExpression = new Node("Math Expression");
-            if (TokenStream[InputPointer].token_type == Token_Class.Idenifier || TokenStream[InputPointer].token_type == Token_Class.Constant || TokenStream[InputPointer].token_type == Token_Class.LParanthesis )
+        
+            if (TokenStream[InputPointer].token_type == Token_Class.Idenifier || TokenStream[InputPointer].token_type == Token_Class.Constant || TokenStream[InputPointer].token_type == Token_Class.LParanthesis || TokenStream[InputPointer].token_type == Token_Class.Idenifier && TokenStream[InputPointer + 1].token_type == Token_Class.LParanthesis)
             {
                 //Math Term
                 mathExpression.Children.Add(MathTerm());
@@ -136,40 +139,39 @@ namespace Tiny_Langauge_Compiler
                 mathExpression.Children.Add(Equation());
                 mathExpression.Children.Add(MathExpressionDash());
             }
+
             return mathExpression;
         }
         Node MathExpressionDash()
         {
-            //Done
-            // e | MultOp MathExpression MathExpression’
+            // epsilon | MultOp MathExpression MathExpression’
             Node mathExpressionDash = new Node("Math Expression Dash");
+            
             if (TokenStream[InputPointer].token_type == Token_Class.MultiplyOp)
             {
-                //multiplyOp
                 mathExpressionDash.Children.Add(match(Token_Class.MultiplyOp));
                 mathExpressionDash.Children.Add(MathExpression());
                 mathExpressionDash.Children.Add(MathExpressionDash());
             }
             else if (TokenStream[InputPointer].token_type == Token_Class.DivideOp)
             {
-                //Divide Op
                 mathExpressionDash.Children.Add(match(Token_Class.DivideOp));
                 mathExpressionDash.Children.Add(MathExpression());
                 mathExpressionDash.Children.Add(MathExpressionDash());
             }
             else
             {
-                //epsilon
                 return null;
             }
-            return mathExpressionDash;
 
+            return mathExpressionDash;
         }
+
         Node MathTerm()
         {
-            //Done
             // Term | (Equation)
             Node mathTerm = new Node("Math Term");
+            
             if (TokenStream[InputPointer].token_type == Token_Class.LParanthesis)
             {
                 // (Equation)
@@ -179,72 +181,66 @@ namespace Tiny_Langauge_Compiler
             }
             else
             {
-                //Term
+                // Term
                 mathTerm.Children.Add(Term());
             }
             return mathTerm;
         }
         Node EquationDash()
         {
-            //Done
-            //ADD OP mathexpression || e
+            // AddOp MathExpression | epsilon
             Node equationDash = new Node("Equation Dash");
+            
             if (TokenStream[InputPointer].token_type == Token_Class.PlusOp)
             {
-                //plus Op
                 equationDash.Children.Add(match(Token_Class.PlusOp));
                 equationDash.Children.Add(MathExpression());
             }
             else if (TokenStream[InputPointer].token_type == Token_Class.MinusOp)
             {
-                //minus OP
                 equationDash.Children.Add(match(Token_Class.MinusOp));
                 equationDash.Children.Add(MathExpression());
             }
             else
             {
-                //epsilon
                 return null;
             }
+
             return equationDash;
-   
         }
         //Assignment Statment
         Node AssignmentStatment()
         {
-            //Done
             //identifier :=  Expression
-            Node assignmentStatment = new Node("Assignment Statment");
+            Node assignmentStatment = new Node("Assignment Statement");
+           
             assignmentStatment.Children.Add(match(Token_Class.Idenifier));
             assignmentStatment.Children.Add(match(Token_Class.AssignOperator));
             assignmentStatment.Children.Add(Expression());
+            
             return assignmentStatment;
         }
        Node Expression()
         {
-            //Done
-            //Term | string | Equation
+            // Term | string | Equation
             Node expression = new Node ("Expression");
+            
             if (TokenStream[InputPointer].token_type == Token_Class.String)
             {
-                //string
                 expression.Children.Add(match(Token_Class.String));
             }
             else if (TokenStream[InputPointer].token_type == Token_Class.Idenifier || TokenStream[InputPointer].token_type == Token_Class.Constant)
             {
-                //Term
                 expression.Children.Add(Term());
             }
             else
             {
-                //Equation
                 expression.Children.Add(Equation());
             }
 
             return expression;
         }
-        // Implement your logic here
-
+        
         public Node match(Token_Class ExpectedToken)
         {
 
