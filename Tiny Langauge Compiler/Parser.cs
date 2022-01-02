@@ -90,17 +90,17 @@ namespace Tiny_Langauge_Compiler
             //Done
             //identifier | Number | Function Call
             Node term = new Node("Term");
-            if (Token[InputPointer].token_type == Token_Class.Idenifier && Token[InputPointer+1].token_type == Token_Class.LParanthesis)
+            if (TokenStream[InputPointer].token_type == Token_Class.Idenifier && TokenStream[InputPointer+1].token_type == Token_Class.LParanthesis)
             {
                  //function call
                 term.Children.Add(FunctionCall());
             }
-            if (Token[InputPointer].token_type == Token_Class.Idenifier)
+            if (TokenStream[InputPointer].token_type == Token_Class.Idenifier)
             {
                 //Identfier
                 term.Children.Add(match(Token_Class.Idenifier));
             }
-            else if (Token[InputPointer].token_type == Token_Class.Constant)
+            else if (TokenStream[InputPointer].token_type == Token_Class.Constant)
             {
                 //Number
                 term.Children.Add(match(Token_Class.Constant));
@@ -124,7 +124,7 @@ namespace Tiny_Langauge_Compiler
             //Done
             //Equation MathExpression' || MathTerm MathExpression’
             Node mathExpression = new Node("Math Expression");
-            if (Token[InputPointer].token_type == Token_Class.Idenifier || Token[InputPointer].token_type == Token_Class.Constant ||Token[InputPointer].token_type == Token_Class.LParanthesis )
+            if (TokenStream[InputPointer].token_type == Token_Class.Idenifier || TokenStream[InputPointer].token_type == Token_Class.Constant || TokenStream[InputPointer].token_type == Token_Class.LParanthesis )
             {
                 //Math Term
                 mathExpression.Children.Add(MathTerm());
@@ -143,17 +143,17 @@ namespace Tiny_Langauge_Compiler
             //Done
             // e | MultOp MathExpression MathExpression’
             Node mathExpressionDash = new Node("Math Expression Dash");
-            if (Token[InputPointer].token_type == Token_Class.MultiplyOp)
+            if (TokenStream[InputPointer].token_type == Token_Class.MultiplyOp)
             {
                 //multiplyOp
-                mathExpressionDash.Children.Add(match(Token_Class.MultiplyOp);
+                mathExpressionDash.Children.Add(match(Token_Class.MultiplyOp));
                 mathExpressionDash.Children.Add(MathExpression());
                 mathExpressionDash.Children.Add(MathExpressionDash());
             }
-            else if (Token[InputPointer].token_type == Token_Class.DivideOp)
+            else if (TokenStream[InputPointer].token_type == Token_Class.DivideOp)
             {
                 //Divide Op
-                mathExpressionDash.Children.Add(match(Token_Class.DivideOp);
+                mathExpressionDash.Children.Add(match(Token_Class.DivideOp));
                 mathExpressionDash.Children.Add(MathExpression());
                 mathExpressionDash.Children.Add(MathExpressionDash());
             }
@@ -170,7 +170,7 @@ namespace Tiny_Langauge_Compiler
             //Done
             // Term | (Equation)
             Node mathTerm = new Node("Math Term");
-            if (Token[InputPointer].token_type == Token_Class.LParanthesis)
+            if (TokenStream[InputPointer].token_type == Token_Class.LParanthesis)
             {
                 // (Equation)
                 mathTerm.Children.Add(match(Token_Class.LParanthesis));
@@ -189,13 +189,13 @@ namespace Tiny_Langauge_Compiler
             //Done
             //ADD OP mathexpression || e
             Node equationDash = new Node("Equation Dash");
-            if (Token[InputPointer].token_type == Token_Class.PlusOp)
+            if (TokenStream[InputPointer].token_type == Token_Class.PlusOp)
             {
                 //plus Op
                 equationDash.Children.Add(match(Token_Class.PlusOp));
                 equationDash.Children.Add(MathExpression());
             }
-            else if (Token[InputPointer].token_type == Token_Class.MinusOp)
+            else if (TokenStream[InputPointer].token_type == Token_Class.MinusOp)
             {
                 //minus OP
                 equationDash.Children.Add(match(Token_Class.MinusOp));
@@ -225,15 +225,15 @@ namespace Tiny_Langauge_Compiler
             //Done
             //Term | string | Equation
             Node expression = new Node ("Expression");
-            if (Token[InputPointer].token_type == Token_Class.String)
+            if (TokenStream[InputPointer].token_type == Token_Class.String)
             {
                 //string
                 expression.Children.Add(match(Token_Class.String));
             }
-            else if (Token[InputPointer].token_type == Token_Class.Idenifier || Token[InputPointer].token_type == Token_Class.Constant)
+            else if (TokenStream[InputPointer].token_type == Token_Class.Idenifier || TokenStream[InputPointer].token_type == Token_Class.Constant)
             {
                 //Term
-                expression.Children.Add(Term);
+                expression.Children.Add(Term());
             }
             else
             {
