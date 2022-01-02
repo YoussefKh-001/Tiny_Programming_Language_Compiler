@@ -87,6 +87,8 @@ namespace Tiny_Langauge_Compiler
         //TERM 
         Node Term()
         {
+            //Done
+            //identifier | Number | Function Call
             Node term = new Node("Term");
             if (Token[InputPointer].token_type == Token_Class.Idenifier && Token[InputPointer+1].token_type == Token_Class.LParanthesis)
             {
@@ -207,7 +209,40 @@ namespace Tiny_Langauge_Compiler
             return equationDash;
    
         }
-       
+        //Assignment Statment
+        Node AssignmentStatment()
+        {
+            //Done
+            //identifier :=  Expression
+            Node assignmentStatment = new Node("Assignment Statment");
+            assignmentStatment.Children.Add(match(Token_Class.Idenifier));
+            assignmentStatment.Children.Add(match(Token_Class.AssignOperator));
+            assignmentStatment.Children.Add(Expression());
+            return assignmentStatment;
+        }
+       Node Expression()
+        {
+            //Done
+            //Term | string | Equation
+            Node expression = new Node ("Expression");
+            if (Token[InputPointer].token_type == Token_Class.String)
+            {
+                //string
+                expression.Children.Add(match(Token_Class.String));
+            }
+            else if (Token[InputPointer].token_type == Token_Class.Idenifier || Token[InputPointer].token_type == Token_Class.Constant)
+            {
+                //Term
+                expression.Children.Add(Term);
+            }
+            else
+            {
+                //Equation
+                expression.Children.Add(Equation());
+            }
+
+            return expression;
+        }
         // Implement your logic here
 
         public Node match(Token_Class ExpectedToken)
