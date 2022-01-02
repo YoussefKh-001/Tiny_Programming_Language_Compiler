@@ -51,6 +51,7 @@ namespace Tiny_Langauge_Compiler
             this.TokensGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.TokensGridView.Location = new System.Drawing.Point(638, 9);
             this.TokensGridView.Name = "TokensGridView";
+            this.TokensGridView.RowHeadersWidth = 51;
             this.TokensGridView.Size = new System.Drawing.Size(408, 361);
             this.TokensGridView.TabIndex = 1;
             // 
@@ -86,7 +87,7 @@ namespace Tiny_Langauge_Compiler
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(6, 480);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(48, 13);
+            this.label1.Size = new System.Drawing.Size(56, 15);
             this.label1.TabIndex = 5;
             this.label1.Text = "Error List";
             // 
@@ -100,6 +101,7 @@ namespace Tiny_Langauge_Compiler
             this.Controls.Add(this.TokensGridView);
             this.Controls.Add(this.CodeTextBox);
             this.Name = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.TokensGridView)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

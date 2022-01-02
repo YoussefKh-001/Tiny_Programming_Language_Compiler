@@ -105,5 +105,10 @@ namespace Tiny_Langauge_Compiler
 
             TokensGridView.DataSource = scanner.tokensDataTable;
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

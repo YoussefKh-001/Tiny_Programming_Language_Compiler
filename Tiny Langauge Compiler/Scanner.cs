@@ -7,15 +7,37 @@ using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.Data;
 using System.Diagnostics;
+public enum Token_Class
+{
+    Begin, Call, Declare, End, Do, Else, EndIf, EndUntil, EndWhile, If, Integer, Float, String,
+    Parameters, Procedure, Program, Read, Real, Set, Then, Until, While, Write,
+    Dot, Semicolon, Comma, LParanthesis, RParanthesis, EqualOp, LessThanOp,
+    GreaterThanOp, NotEqualOp, PlusOp, MinusOp, MultiplyOp, DivideOp,
+    Idenifier, Constant, Repeat, ElseIf, Return, Endl, GreaterThanEqOp, LessThanEqOp, ANDOp, OROp,
+    LCurlyBraces, RCurlyBraces, AssignOperator, 
+}
+
 namespace Tiny_Langauge_Compiler
 {
+    public class Token
+    {
+        public string lex;
+        public Token_Class token_type;
+
+        public Token() { }
+        public Token(string lex,Token_Class token)
+        {
+            this.lex = lex;
+            this.token_type = token;
+        }
+    }
     class Scanner
     {
         ScanningPhase Number, StringInQuotes, ReservedWords, DataTypes, CommentStatement, Identifier,
-            Function, Semicolon, Comma, LParentheses, RParentheses, LBraces, RBraces, Assign, Equation, ArithmeticOperators, ConditionalOperators;
+            Function, Semicolon, Comma, LParentheses, RParentheses, LBraces, RBraces, Assign, Equation, ArithmeticOperators, ConditionalOperators, BooleanOperators;
 
         public DataTable tokensDataTable;
-
+        public List<Token> Tokens = new List<Token>();
         char[] operators = { '+', '-', '/', '*'};
         string[] conditionalOperators = { "=", "<", "<=", ">=", "<>" , ">"};
         string assignOperator = ":="; 
@@ -43,6 +65,7 @@ namespace Tiny_Langauge_Compiler
             ArithmeticOperators = new ScanningPhase(@"^(\+|\-|\*|/)$", "Arithmentic Operator");
             Equation = new ScanningPhase(String.Format(@"^\(*{0}\)*(\s*{1}\s*{0}\)*)+$", Number.getRegularExpression(), ArithmeticOperators.getRegularExpression()), "Equation");
             ConditionalOperators = new ScanningPhase(@"^(<|>|=|(<>)|(<=)|(>=))$", "Conditional Operator");
+            BooleanOperators = new ScanningPhase(@"^(&&|\|\|)$", "Boolean Operator");
             errorList = new List<string>();
         }
 
@@ -169,12 +192,62 @@ namespace Tiny_Langauge_Compiler
                     }
                     else if (currentChar == ':')
                     {
-                        if (i < code.Length - 1 && code[++i] == '=')
-                            lexeme += assignOperator;
+                        if (i < code.Length - 1)
+                        { 
+                            if (code[i+1] == '=')
+                            {
+                                lexeme += assignOperator;
+                                i++;
+                            }
+                            else
+                            {
+                                lexeme += currentChar;
+                            }
+                        }
                         else
                         {
                             lexeme += currentChar;
-                            i--;
+                            
+                        }
+                    }
+                    else if (currentChar == '&')
+                    {
+                        if (i < code.Length - 1)
+                        {
+                            if (code[i + 1] == '&')
+                            {
+                                lexeme += "&&";
+                                i++;
+                            }
+                            else
+                            {
+                                lexeme += currentChar;
+                            }
+                        }
+                        else
+                        {
+                            lexeme += currentChar;
+
+                        }
+                    }
+                    else if (currentChar == '|')
+                    {
+                        if (i < code.Length - 1)
+                        {
+                            if (code[i + 1] == '|')
+                            {
+                                lexeme += "||";
+                                i++;
+                            }
+                            else
+                            {
+                                lexeme += currentChar;
+                            }
+                        }
+                        else
+                        {
+                            lexeme += currentChar;
+
                         }
                     }
                     else if (currentChar == '"')
@@ -229,6 +302,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success && !DataTypes.isMatch(match.Value) && !ReservedWords.isMatch(match.Value))
             {
                 tokensDataTable.Rows.Add(match.Value, Identifier.getType());
+                Tokens.Add(new Token(match.Value, Token_Class.Idenifier));
                 return;
             }
             //DataTypes Phase
@@ -236,13 +310,63 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, DataTypes.getType() + "(" + match.Value.ToUpper() + ")");
+                string Dtype = match.Value.ToLower();
+                Token_Class token = new Token_Class();
+
+                if (Dtype == "int")
+                    token = Token_Class.Integer;
+                else if (Dtype == "float")
+                    token = Token_Class.Float;
+                else if (Dtype == "string")
+                    token = Token_Class.String;
+                    
+                Tokens.Add(new Token(Dtype, token));
                 return;
             }
             //Reserved Words Phase
             match = ReservedWords.Match(word);
             if (match.Success)
             { 
-                tokensDataTable.Rows.Add(match.Value, ReservedWords.getType());
+                tokensDataTable.Rows.Add(match.Value, word.ToUpper());
+                string Dtype = match.Value.ToLower();
+                Token_Class token = new Token_Class();
+
+                switch (Dtype)
+                {
+                   
+                    case "read":
+                        token = Token_Class.Read;
+                        break;
+                    case "write":
+                        token = Token_Class.Write;
+                        break;
+                    case "repeat":
+                        token = Token_Class.Repeat;
+                        break;
+                    case "until":
+                        token = Token_Class.Until;
+                        break;
+                    case "if":
+                        token = Token_Class.If;
+                        break;
+                    case "elseif":
+                        token = Token_Class.ElseIf;
+                        break;
+                    case "else":
+                        token = Token_Class.Else;
+                        break;
+                    case "return":
+                        token = Token_Class.Return;
+                        break;
+                    case "then":
+                        token = Token_Class.Then;
+                        break;
+                    case "endl":
+                        token = Token_Class.Endl;
+                        break;
+            }
+
+                Tokens.Add(new Token(Dtype, token));
                 return;
             }
             //Number Phase
@@ -250,6 +374,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, Number.getType());
+                Tokens.Add(new Token(match.Value, Token_Class.Constant));
                 return;
             }
            
@@ -260,6 +385,26 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, ArithmeticOperators.getType());
+                string Dtype = match.Value;
+                Token_Class token = new Token_Class();
+
+                switch (Dtype)
+                {
+                    case "+":
+                        token = Token_Class.PlusOp;
+                        break;
+                    case "-":
+                        token = Token_Class.MinusOp;
+                        break;
+                    case "*":
+                        token = Token_Class.MultiplyOp;
+                        break;
+                    case "/":
+                        token = Token_Class.DivideOp;
+                        break;
+                }
+
+                Tokens.Add(new Token(Dtype, token));
                 return;
             }
 
@@ -268,6 +413,55 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, ConditionalOperators.getType());
+                string Dtype = match.Value;
+                Token_Class token = new Token_Class();
+
+                switch (Dtype)
+                {
+                    case ">":
+                        token = Token_Class.GreaterThanOp;
+                        break;
+                    case "<":
+                        token = Token_Class.LessThanOp;
+                        break;
+                    case "<>":
+                        token = Token_Class.NotEqualOp;
+                        break;
+                    case "<=":
+                        token = Token_Class.LessThanEqOp;
+                        break;
+                    case ">=":
+                        token = Token_Class.GreaterThanEqOp;
+                        break;
+                    case "=":
+                        token = Token_Class.EqualOp;
+                        break;
+                }
+
+                Tokens.Add(new Token(Dtype, token));
+                return;
+                
+            }
+            //Boolean Operators
+            match = BooleanOperators.Match(word);
+            if (match.Success)
+            {
+                tokensDataTable.Rows.Add(match.Value, (word == "&&" ? "AND":"OR"));
+                string Dtype = match.Value;
+                Token_Class token = new Token_Class();
+
+                switch (Dtype)
+                {
+                    case "&&":
+                        token = Token_Class.ANDOp;
+                        break;
+                    case "||":
+                        token = Token_Class.OROp;
+                        break;
+                    
+                }
+
+                Tokens.Add(new Token(Dtype, token));
                 return;
             }
             //semicolon
@@ -275,6 +469,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, Semicolon.getType());
+                Tokens.Add(new Token(match.Value, Token_Class.Semicolon));
                 return;
             }
             //comma
@@ -282,6 +477,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, Comma.getType());
+                Tokens.Add(new Token(match.Value, Token_Class.Comma));
                 return;
             }
             //openparenthese
@@ -289,6 +485,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, LParentheses.getType());
+                Tokens.Add(new Token(match.Value, Token_Class.LParanthesis));
                 return;
             }
             //closeparenthese
@@ -296,6 +493,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, RParentheses.getType());
+                Tokens.Add(new Token(match.Value, Token_Class.RParanthesis));
                 return;
             }
             //openBraces
@@ -303,6 +501,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, LBraces.getType());
+                Tokens.Add(new Token(match.Value, Token_Class.LCurlyBraces));
                 return;
             }
             //close braces
@@ -310,6 +509,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, RBraces.getType());
+                Tokens.Add(new Token(match.Value, Token_Class.RCurlyBraces));
                 return;
             }
 
@@ -318,6 +518,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, Assign.getType());
+                Tokens.Add(new Token(match.Value, Token_Class.AssignOperator));
                 return;
             }
             
@@ -326,6 +527,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, StringInQuotes.getType());
+                Tokens.Add(new Token(match.Value, Token_Class.Constant));
                 return;
             }
             errorList.Add("Line "+ line + " : Unrecognized token : " +  word);
