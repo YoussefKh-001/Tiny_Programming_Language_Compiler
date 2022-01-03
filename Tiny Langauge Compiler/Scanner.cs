@@ -151,7 +151,7 @@ namespace Tiny_Langauge_Compiler
                 }
                 else if (char.IsLetter(currentChar) || currentChar == '_')
                 {
-                    while ((char.IsLetter(currentChar) || currentChar == '_') && i < code.Length)
+                    while ((char.IsLetter(currentChar) || currentChar == '_' || char.IsDigit(currentChar)) && i < code.Length)
                     {
                         currentChar = code[i];
                         lexeme += currentChar;
