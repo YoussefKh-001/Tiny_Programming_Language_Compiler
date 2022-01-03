@@ -13,7 +13,7 @@ public enum Token_Class
     Parameters, Procedure, Program, Read, Real, Set, Then, Until, While, Write,
     Dot, Semicolon, Comma, LParanthesis, RParanthesis, EqualOp, LessThanOp,
     GreaterThanOp, NotEqualOp, PlusOp, MinusOp, MultiplyOp, DivideOp,
-    Idenifier, Constant, Repeat, ElseIf, Return, Endl, GreaterThanEqOp, LessThanEqOp, ANDOp, OROp,
+    Idenifier, Constant, StringConstant, Repeat, ElseIf, Return, Endl, GreaterThanEqOp, LessThanEqOp, ANDOp, OROp,
     LCurlyBraces, RCurlyBraces, AssignOperator,Main , FunctionIdentifier
 }
 
@@ -266,8 +266,8 @@ namespace Tiny_Langauge_Compiler
                             lexeme += code[i];
                             i++;
                         }
-                        if (i < code.Length && code[i] == ';')
-                            i--;
+                        
+                        i--;
                         if (i < code.Length && code[i] == '\n') line++;
                     }
 
@@ -540,7 +540,7 @@ namespace Tiny_Langauge_Compiler
             if (match.Success)
             {
                 tokensDataTable.Rows.Add(match.Value, StringInQuotes.getType());
-                Tokens.Add(new Token(match.Value, Token_Class.Constant));
+                Tokens.Add(new Token(match.Value, Token_Class.StringConstant));
                 return;
             }
             errorList.Add("Line "+ line + " : Unrecognized token : " +  word);

@@ -76,13 +76,13 @@ namespace Tiny_Langauge_Compiler
   
         Node IdentifiersList()
         {
-            // identifier Parameters | epsilon
+            // Expression Parameters | epsilon
             Node identifiersList = new Node("Identifiers List");
             try
             {
-                if (TokenStream[InputPointer].token_type == Token_Class.Idenifier)
+                if (TokenStream[InputPointer].token_type == Token_Class.Idenifier || TokenStream[InputPointer].token_type == Token_Class.Constant|| TokenStream[InputPointer].token_type == Token_Class.StringConstant)
                 {
-                    identifiersList.Children.Add(Equation());
+                    identifiersList.Children.Add(Expression());
                     identifiersList.Children.Add(Parameters());
                 }
                 else
@@ -99,14 +99,14 @@ namespace Tiny_Langauge_Compiler
 
         Node Parameters()
         {
-            // ,identifier Parameters | epsilon
+            // ,Expression Parameters | epsilon
             Node parameters = new Node("Parameters");
             try
             {
                 if (TokenStream[InputPointer].token_type == Token_Class.Comma)
                 {
                     parameters.Children.Add(match(Token_Class.Comma));
-                    parameters.Children.Add(Equation());
+                    parameters.Children.Add(Expression());
                     parameters.Children.Add(Parameters());
                 }
                 else
@@ -271,15 +271,19 @@ namespace Tiny_Langauge_Compiler
        {
             // Term | string | Equation
             Node expression = new Node ("Expression");
-            
-            if (TokenStream[InputPointer].token_type == Token_Class.Constant)
+            if (InputPointer < TokenStream.Count)
             {
-                expression.Children.Add(match(Token_Class.Constant));
-            }
-            
-            else
+                if (TokenStream[InputPointer].token_type == Token_Class.StringConstant)
+                {
+                    expression.Children.Add(match(Token_Class.StringConstant));
+                }
+                else
+                {
+                    expression.Children.Add(Equation());
+                }
+            }else
             {
-                expression.Children.Add(Equation());
+                return null;
             }
 
             return expression;
@@ -329,7 +333,7 @@ namespace Tiny_Langauge_Compiler
                 if (TokenStream[InputPointer].token_type == Token_Class.AssignOperator)
                 {
                     assignOrNot.Children.Add(match(Token_Class.AssignOperator));
-                    assignOrNot.Children.Add(Equation());
+                    assignOrNot.Children.Add(Expression());
                 } else
                     return null;
             }catch(Exception e)
@@ -561,7 +565,14 @@ namespace Tiny_Langauge_Compiler
             // return Expression;
             Node returnStatement = new Node("Return Statement");
 
-            returnStatement.Children.Add(match(Token_Class.Return));
+            Node ret = match(Token_Class.Return);
+            if (ret != null)
+                returnStatement.Children.Add(ret);
+            else
+            {
+                InputPointer--;
+                return null;
+            }
             returnStatement.Children.Add(Expression());
             returnStatement.Children.Add(match(Token_Class.Semicolon));
 
