@@ -291,10 +291,40 @@ namespace Tiny_Langauge_Compiler
             Node declarationStatement = new Node("Declaration Statement");
 
             declarationStatement.Children.Add(DataType());
-            declarationStatement.Children.Add(IdentifiersList());
+            declarationStatement.Children.Add(match(Token_Class.Idenifier));
+            declarationStatement.Children.Add(AssignOrCommaOrNothing());
             declarationStatement.Children.Add(match(Token_Class.Semicolon));
 
             return declarationStatement;
+        }
+        Node AssignOrCommaOrNothing()
+        {
+            //:= Expression AssignOrCommaOrNothing | , identifier AssignOrCommaOrNothing | ε
+            Node assignOrCommaOrNothing = new Node("Assign or comma or nothing");
+            try {
+                
+                if (TokenStream[InputPointer].token_type == Token_Class.AssignOperator)
+                {
+                     assignOrCommaOrNothing.Children.Add(match(Token_Class.AssignOperator));
+                     assignOrCommaOrNothing.Children.Add(Expression());
+                     assignOrCommaOrNothing.Children.Add(AssignOrCommaOrNothing());
+                }
+            else if (TokenStream[InputPointer].token_type == Token_Class.Comma)
+            {
+                assignOrCommaOrNothing.Children.Add(match(Token_Class.Comma));
+                assignOrCommaOrNothing.Children.Add(match(Token_Class.Idenifier));
+                assignOrCommaOrNothing.Children.Add(AssignOrCommaOrNothing());
+            }
+            else
+            {
+                return null;
+            }
+           
+            }catch(Exception e)
+            {
+                return null;
+            }
+            return assignOrCommaOrNothing;
         }
 
         Node DataType()
