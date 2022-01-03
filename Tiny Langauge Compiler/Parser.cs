@@ -34,7 +34,7 @@ namespace Tiny_Langauge_Compiler
             this.InputPointer = 0;
             this.TokenStream = TokenStream;
             root = new Node("Program");
-            root.Children.Add(Program());
+            root.Children.Add(DeclarationStatement());
             return root;
         }
         
@@ -291,11 +291,76 @@ namespace Tiny_Langauge_Compiler
             Node declarationStatement = new Node("Declaration Statement");
 
             declarationStatement.Children.Add(DataType());
-            declarationStatement.Children.Add(match(Token_Class.Idenifier));
-            declarationStatement.Children.Add(AssignOrCommaOrNothing());
+            declarationStatement.Children.Add(IdentifiersDeclarationList());
             declarationStatement.Children.Add(match(Token_Class.Semicolon));
 
             return declarationStatement;
+        }
+
+        Node IdentifiersDeclarationList()
+        {
+            //
+            Node identifiersDeclarationList = new Node("Identifiers Declaration List");
+
+            try
+            {
+                if (TokenStream[InputPointer].token_type == Token_Class.Idenifier)
+                {
+                    identifiersDeclarationList.Children.Add(match(Token_Class.Idenifier));
+                    identifiersDeclarationList.Children.Add(AssignOrNot());
+                    identifiersDeclarationList.Children.Add(DeclarationParameters());
+                } else
+                    return null;
+            }catch(Exception e)
+            {
+                return null;
+            }
+
+            return identifiersDeclarationList;
+        }
+
+        Node AssignOrNot()
+        {
+            //
+            Node assignOrNot = new Node("Assign Or Not");
+
+            try
+            {
+                if (TokenStream[InputPointer].token_type == Token_Class.AssignOperator)
+                {
+                    assignOrNot.Children.Add(match(Token_Class.AssignOperator));
+                    assignOrNot.Children.Add(Equation());
+                } else
+                    return null;
+            }catch(Exception e)
+            {
+                return null;
+            }
+
+            return assignOrNot;
+        }
+
+        Node DeclarationParameters()
+        {
+            // ,identifier Parameters | epsilon
+            Node declarationParameters = new Node("Declaration Parameters");
+            try
+            {
+                if (TokenStream[InputPointer].token_type == Token_Class.Comma)
+                {
+                    declarationParameters.Children.Add(match(Token_Class.Comma));
+                    declarationParameters.Children.Add(match(Token_Class.Idenifier));
+                    declarationParameters.Children.Add(AssignOrNot());
+                    declarationParameters.Children.Add(DeclarationParameters());
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception x) { return null; }
+
+            return declarationParameters;
         }
         Node AssignOrCommaOrNothing()
         {
