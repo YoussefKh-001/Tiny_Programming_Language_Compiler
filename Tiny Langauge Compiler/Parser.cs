@@ -34,7 +34,7 @@ namespace Tiny_Langauge_Compiler
             this.InputPointer = 0;
             this.TokenStream = TokenStream;
             root = new Node("Program");
-            root.Children.Add(DeclarationStatement());
+            root.Children.Add(Program());
             return root;
         }
         
@@ -82,7 +82,7 @@ namespace Tiny_Langauge_Compiler
             {
                 if (TokenStream[InputPointer].token_type == Token_Class.Idenifier)
                 {
-                    identifiersList.Children.Add(match(Token_Class.Idenifier));
+                    identifiersList.Children.Add(Equation());
                     identifiersList.Children.Add(Parameters());
                 }
                 else
@@ -106,7 +106,7 @@ namespace Tiny_Langauge_Compiler
                 if (TokenStream[InputPointer].token_type == Token_Class.Comma)
                 {
                     parameters.Children.Add(match(Token_Class.Comma));
-                    parameters.Children.Add(match(Token_Class.Idenifier));
+                    parameters.Children.Add(Equation());
                     parameters.Children.Add(Parameters());
                 }
                 else
