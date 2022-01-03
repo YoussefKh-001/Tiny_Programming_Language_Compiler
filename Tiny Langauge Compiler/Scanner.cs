@@ -50,7 +50,7 @@ namespace Tiny_Langauge_Compiler
 
             Number = new ScanningPhase(@"^\d+(\.\d*)?$", "Number");
             StringInQuotes = new ScanningPhase(@"^""[^""]*""$", "String");
-            ReservedWords = new ScanningPhase(@"^(read|write|repeat|until|if|elseif|else|return|then|endl)$", "Reserved Word");
+            ReservedWords = new ScanningPhase(@"^(read|write|repeat|until|if|elseif|else|return|then|endl|end)$", "Reserved Word");
             DataTypes = new ScanningPhase(@"^(int|float|string|char)$", "DataType");
             CommentStatement = new ScanningPhase(@"/\*(.|\s)*\*/", "Comment");
             Identifier = new ScanningPhase(@"^[a-zA-Z_][a-zA-Z0-9_]*$", "Identifier");
@@ -377,7 +377,10 @@ namespace Tiny_Langauge_Compiler
                     case "endl":
                         token = Token_Class.Endl;
                         break;
-            }
+                    case "end":
+                        token = Token_Class.End;
+                        break;
+                }
 
                 Tokens.Add(new Token(Dtype, token));
                 return;

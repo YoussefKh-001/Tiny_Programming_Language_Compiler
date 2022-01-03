@@ -45,7 +45,6 @@ namespace Tiny_Langauge_Compiler
 
             program.Children.Add(FunctionStatements());
             program.Children.Add(MainFunction());
-            //program.Children.Add(FunctionStatements());
 
             return program;
         }
@@ -477,10 +476,11 @@ namespace Tiny_Langauge_Compiler
             Node conditionStatementDash = new Node("Conidtion Statement Dash");
             try
             {
-                if (TokenStream[InputPointer].token_type == Token_Class.ANDOp && TokenStream[InputPointer].token_type == Token_Class.OROp)
+                if (TokenStream[InputPointer].token_type == Token_Class.ANDOp || TokenStream[InputPointer].token_type == Token_Class.OROp)
                 {
                     conditionStatementDash.Children.Add(BoolOeprator());
                     conditionStatementDash.Children.Add(Condition());
+                    conditionStatementDash.Children.Add(ConditionStatementDash());
                 }
                 else
                 {
@@ -598,23 +598,25 @@ namespace Tiny_Langauge_Compiler
         {
             // elseif ConditionStatement then Statements ElseIfStatement | ElseStatement | end
             Node elseIfStatement = new Node("Else If Statement");
-            
-            if(TokenStream[InputPointer].token_type == Token_Class.ElseIf)
+            if (InputPointer < TokenStream.Count)
             {
-                elseIfStatement.Children.Add(match(Token_Class.ElseIf));
-                elseIfStatement.Children.Add(ConditionStatement());
-                elseIfStatement.Children.Add(match(Token_Class.Then));
-                elseIfStatement.Children.Add(Statements());
-                elseIfStatement.Children.Add(ElseIfStatement());
-            } else if(TokenStream[InputPointer].token_type == Token_Class.End)
-            {
-                elseIfStatement.Children.Add(match(Token_Class.End));
+                if (TokenStream[InputPointer].token_type == Token_Class.ElseIf)
+                {
+                    elseIfStatement.Children.Add(match(Token_Class.ElseIf));
+                    elseIfStatement.Children.Add(ConditionStatement());
+                    elseIfStatement.Children.Add(match(Token_Class.Then));
+                    elseIfStatement.Children.Add(Statements());
+                    elseIfStatement.Children.Add(ElseIfStatement());
+                }
+                else if (TokenStream[InputPointer].token_type == Token_Class.Else)
+                {
+                    elseIfStatement.Children.Add(ElseStatement());
+                }
+                else
+                {
+                    elseIfStatement.Children.Add(match(Token_Class.End));
+                }
             }
-            else
-            {
-                elseIfStatement.Children.Add(ElseStatement());
-            }
-
             return elseIfStatement;
         }
 
