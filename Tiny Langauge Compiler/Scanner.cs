@@ -266,6 +266,8 @@ namespace Tiny_Langauge_Compiler
                             lexeme += code[i];
                             i++;
                         }
+                        if (i < code.Length && code[i] == ';')
+                            i--;
                         if (i < code.Length && code[i] == '\n') line++;
                     }
 
