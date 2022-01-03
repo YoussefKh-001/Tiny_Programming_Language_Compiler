@@ -40,7 +40,7 @@ namespace Tiny_Langauge_Compiler
             }
 
             TokensGridView.DataSource = scanner.tokensDataTable;
-
+            ParseTree.Nodes.Clear();
             ParseTree.Nodes.Add(Parser.PrintParseTree(parser.root));
         }
 

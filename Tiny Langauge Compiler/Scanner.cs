@@ -14,7 +14,7 @@ public enum Token_Class
     Dot, Semicolon, Comma, LParanthesis, RParanthesis, EqualOp, LessThanOp,
     GreaterThanOp, NotEqualOp, PlusOp, MinusOp, MultiplyOp, DivideOp,
     Idenifier, Constant, Repeat, ElseIf, Return, Endl, GreaterThanEqOp, LessThanEqOp, ANDOp, OROp,
-    LCurlyBraces, RCurlyBraces, AssignOperator,Main 
+    LCurlyBraces, RCurlyBraces, AssignOperator,Main , FunctionIdentifier
 }
 
 namespace Tiny_Langauge_Compiler
@@ -73,6 +73,7 @@ namespace Tiny_Langauge_Compiler
         {
             int openParentheses = 0 , openBraces = 0;
             int line = 1;
+            bool isFunction = false;
             errorList.Clear();
             for (int i = 0; i < code.Length; i++)
             {
@@ -157,7 +158,7 @@ namespace Tiny_Langauge_Compiler
                         i++;
                         if (i < code.Length)
                             currentChar = code[i];
-
+                        
                     }
                     i--;
                 }
@@ -274,9 +275,11 @@ namespace Tiny_Langauge_Compiler
                     }
 
                 }
-
+                if (i+1 < code.Length&& code[i+1] == '(')
+                    isFunction = true;
                 if(lexeme.Length > 0)
-                    ScanWord(lexeme, line);
+                    ScanWord(lexeme, line, isFunction);
+                isFunction = false;
             }
             if (openBraces > 0)
             {
@@ -287,7 +290,7 @@ namespace Tiny_Langauge_Compiler
                 errorList.Add("There are open Parentheses that haven't been closed");
             }
         }
-        public void ScanWord(String word, int line)
+        public void ScanWord(String word, int line, bool isFunction = false)
         {
             //Comment
             Match match = CommentStatement.Match(word);
@@ -301,11 +304,16 @@ namespace Tiny_Langauge_Compiler
             match = Identifier.Match(word);
             if (match.Success && !DataTypes.isMatch(match.Value) && !ReservedWords.isMatch(match.Value))
             {
-                tokensDataTable.Rows.Add(match.Value, Identifier.getType());
-                if(match.Value=="main")
+                tokensDataTable.Rows.Add(match.Value, isFunction?"FunctionIdentifier":Identifier.getType());
+                if (match.Value == "main")
                     Tokens.Add(new Token(match.Value, Token_Class.Main));
                 else
-                    Tokens.Add(new Token(match.Value, Token_Class.Idenifier));
+                {
+                    if (!isFunction)
+                        Tokens.Add(new Token(match.Value, Token_Class.Idenifier));
+                    else
+                        Tokens.Add(new Token(match.Value, Token_Class.FunctionIdentifier));
+                }
                 return;
             }
             //DataTypes Phase
