@@ -346,6 +346,22 @@ namespace Tiny_Langauge_Compiler
                 if (TokenStream[InputPointer].token_type == Token_Class.AssignOperator)
                 {
                     assignOrNot.Children.Add(match(Token_Class.AssignOperator));
+                    if(TokenStream[InputPointer].token_type == Token_Class.Semicolon)
+                    {
+                        Error_List.Add("Parsing Error: Expected "
+                        + Token_Class.Constant.ToString() + " and " +
+                        " Semicolon" +
+                        " found\r\n");
+                        return null;
+                    }
+                    else if(TokenStream[InputPointer].token_type == Token_Class.Comma)
+                    {
+                        Error_List.Add("Parsing Error: Expected "
+                        + Token_Class.Constant.ToString() + " and " +
+                        " Comma" +
+                        " found\r\n");
+                        return null;
+                    }
                     assignOrNot.Children.Add(Expression());
                 } else return null;
             }catch(Exception e)
@@ -436,7 +452,9 @@ namespace Tiny_Langauge_Compiler
             Node writeStatement = new Node("Write Statement");
 
             writeStatement.Children.Add(match(Token_Class.Write));
-            writeStatement.Children.Add(WriteTerminal());
+            Node Write = WriteTerminal();
+            if (Write == null)return null;
+            writeStatement.Children.Add(Write);
             writeStatement.Children.Add(match(Token_Class.Semicolon));
             if (TokenStream[InputPointer - 1].token_type != Token_Class.Semicolon)
             {
@@ -456,7 +474,36 @@ namespace Tiny_Langauge_Compiler
             else if (TokenStream[InputPointer].token_type == Token_Class.Constant)
             {
                 writeTeminal.Children.Add(match(Token_Class.Constant));
-                Console.WriteLine("Hello Bitch\n");
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.StringConstant)
+            {
+                writeTeminal.Children.Add(match(Token_Class.StringConstant));
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.Semicolon)
+            {
+                Error_List.Add("Parsing Error: Expected "
+                        + Token_Class.Idenifier.ToString() + " and " +
+                        TokenStream[InputPointer].token_type.ToString() +
+                        "  found\r\n");
+                match(Token_Class.Semicolon);
+                return null;
+            }
+            else if (TokenStream[InputPointer].token_type == Token_Class.Idenifier && TokenStream[InputPointer+1].token_type == Token_Class.AssignOperator)
+            {
+                Error_List.Add("Parsing Error: Expected "
+                        + Token_Class.Idenifier.ToString() + " and " +
+                        "Assignment Statment" +
+                        "  found\r\n");
+                return null;
+            }
+            //WriteStatement Statements| ReadStatement Statements | AssignmentStatement Statements | DeclarationStatement Statements | ReturnStatement Statements | IfStatement Statements | RepeatStatement Statements | FunctionCall Statements| ε
+            else if (TokenStream[InputPointer].token_type == Token_Class.Declare || TokenStream[InputPointer].token_type == Token_Class.Write || TokenStream[InputPointer].token_type == Token_Class.Read || TokenStream[InputPointer].token_type == Token_Class.Repeat || TokenStream[InputPointer].token_type == Token_Class.If || TokenStream[InputPointer].token_type == Token_Class.ElseIf || TokenStream[InputPointer].token_type == Token_Class.Else || TokenStream[InputPointer].token_type == Token_Class.Return)
+            {
+                Error_List.Add("Parsing Error: Expected "
+                        + Token_Class.Idenifier.ToString() + " and " +
+                        " Other Statments" +
+                        " found\r\n");
+                return null;
             }
             else
                 writeTeminal.Children.Add(Expression());
@@ -609,8 +656,20 @@ namespace Tiny_Langauge_Compiler
                 InputPointer--;
                 return null;
             }
-            /*if (TokenStream[InputPointer].token_type != Token_Class.RCurlyBraces)
-                return null;*/
+            if (TokenStream[InputPointer].token_type == Token_Class.RCurlyBraces)
+            { 
+                //put it in the error list
+                Error_List.Add("Parsing Error: Expected "
+                        + Token_Class.Constant + " and " +
+                        TokenStream[InputPointer].token_type.ToString() +
+                        "  found\r\n");
+                return null;
+            }
+            if (TokenStream[InputPointer].token_type == Token_Class.Semicolon)
+            {
+                match(Token_Class.Constant);
+                return null;
+            }
             returnStatement.Children.Add(Expression());
             returnStatement.Children.Add(match(Token_Class.Semicolon));
             if (TokenStream[InputPointer - 1].token_type != Token_Class.Semicolon)
@@ -682,6 +741,11 @@ namespace Tiny_Langauge_Compiler
             repeatStatement.Children.Add(match(Token_Class.Repeat));
             repeatStatement.Children.Add(Statements());
             repeatStatement.Children.Add(match(Token_Class.Until));
+            if (TokenStream[InputPointer-1].token_type != Token_Class.Until)
+            {
+                InputPointer--;
+                return null;
+            }
             repeatStatement.Children.Add(ConditionStatement());
 
             return repeatStatement;
@@ -827,11 +891,20 @@ namespace Tiny_Langauge_Compiler
                     else if (TokenStream[InputPointer].token_type == Token_Class.FunctionIdentifier)
                     {
                         statements.Children.Add(FunctionCall());
-                        statements.Children.Add(Statements());
+                        
                     }
-                    else 
+                    else if (TokenStream[InputPointer].token_type == Token_Class.Return || TokenStream[InputPointer].token_type == Token_Class.Until || TokenStream[InputPointer].token_type == Token_Class.End)
                     {
                         return null;
+                    }
+                    else
+                    {
+                        Error_List.Add("Parsing Error: Expected "
+                        + "Statement" + " and " +
+                        TokenStream[InputPointer].token_type.ToString() +
+                        "  found\r\n");
+                        InputPointer++;
+                        statements.Children.Add(Statements());
                     }
                    
                 }
