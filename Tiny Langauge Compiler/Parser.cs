@@ -187,12 +187,28 @@ namespace Tiny_Langauge_Compiler
                 if (TokenStream[InputPointer].token_type == Token_Class.MultiplyOp)
                 {
                     mathExpressionDash.Children.Add(match(Token_Class.MultiplyOp));
+                    if (TokenStream[InputPointer].token_type == Token_Class.Semicolon || TokenStream[InputPointer].token_type == Token_Class.Comma)
+                    {
+                        Error_List.Add("Parsing Error: Expected "
+                       + "Math Term" + " and " +
+                       TokenStream[InputPointer].token_type.ToString() +
+                       " found\r\n");
+                        return null; 
+                    }
                     mathExpressionDash.Children.Add(MathExpression());
                     mathExpressionDash.Children.Add(MathExpressionDash());
                 }
                 else if (TokenStream[InputPointer].token_type == Token_Class.DivideOp)
                 {
                     mathExpressionDash.Children.Add(match(Token_Class.DivideOp));
+                    if (TokenStream[InputPointer].token_type == Token_Class.Semicolon || TokenStream[InputPointer].token_type == Token_Class.Comma)
+                    {
+                        Error_List.Add("Parsing Error: Expected "
+                       + "Math Term" + " and " +
+                       TokenStream[InputPointer].token_type.ToString() +
+                       " found\r\n");
+                        return null;
+                    }
                     mathExpressionDash.Children.Add(MathExpression());
                     mathExpressionDash.Children.Add(MathExpressionDash());
                 }
@@ -237,11 +253,27 @@ namespace Tiny_Langauge_Compiler
                 if (TokenStream[InputPointer].token_type == Token_Class.PlusOp)
                 {
                     equationDash.Children.Add(match(Token_Class.PlusOp));
+                    if (TokenStream[InputPointer].token_type == Token_Class.Semicolon || TokenStream[InputPointer].token_type == Token_Class.Comma)
+                    {
+                        Error_List.Add("Parsing Error: Expected "
+                       + "Math Term" + " and " +
+                       TokenStream[InputPointer].token_type.ToString() +
+                       " found\r\n");
+                        return null;
+                    }
                     equationDash.Children.Add(MathExpression());
                 }
                 else if (TokenStream[InputPointer].token_type == Token_Class.MinusOp)
                 {
                     equationDash.Children.Add(match(Token_Class.MinusOp));
+                    if (TokenStream[InputPointer].token_type == Token_Class.Semicolon || TokenStream[InputPointer].token_type == Token_Class.Comma)
+                    {
+                        Error_List.Add("Parsing Error: Expected "
+                       + "Math Term" + " and " +
+                       TokenStream[InputPointer].token_type.ToString() +
+                       " found\r\n");
+                        return null;
+                    }
                     equationDash.Children.Add(MathExpression());
                 }
                 else
@@ -264,10 +296,29 @@ namespace Tiny_Langauge_Compiler
            
             assignmentStatment.Children.Add(match(Token_Class.Idenifier));
             assignmentStatment.Children.Add(match(Token_Class.AssignOperator));
-            if(TokenStream[InputPointer-1].token_type != Token_Class.AssignOperator)
+            if (TokenStream[InputPointer - 1].token_type != Token_Class.AssignOperator)
             {
                 InputPointer--;
                 return null;
+            }
+            else
+            {
+                if (TokenStream[InputPointer].token_type == Token_Class.Semicolon)
+                {
+                    Error_List.Add("Parsing Error: Expected "
+                    + Token_Class.Constant.ToString() + " and " +
+                    " Semicolon" +
+                    " found\r\n");
+                    return null;
+                }
+                else if (TokenStream[InputPointer].token_type == Token_Class.Comma)
+                {
+                    Error_List.Add("Parsing Error: Expected "
+                    + Token_Class.Constant.ToString() + " and " +
+                    " Comma" +
+                    " found\r\n");
+                    return null;
+                }
             }
             assignmentStatment.Children.Add(Expression());
             assignmentStatment.Children.Add(match(Token_Class.Semicolon));
@@ -497,7 +548,7 @@ namespace Tiny_Langauge_Compiler
                 return null;
             }
             //WriteStatement Statements| ReadStatement Statements | AssignmentStatement Statements | DeclarationStatement Statements | ReturnStatement Statements | IfStatement Statements | RepeatStatement Statements | FunctionCall Statements| ε
-            else if (TokenStream[InputPointer].token_type == Token_Class.Declare || TokenStream[InputPointer].token_type == Token_Class.Write || TokenStream[InputPointer].token_type == Token_Class.Read || TokenStream[InputPointer].token_type == Token_Class.Repeat || TokenStream[InputPointer].token_type == Token_Class.If || TokenStream[InputPointer].token_type == Token_Class.ElseIf || TokenStream[InputPointer].token_type == Token_Class.Else || TokenStream[InputPointer].token_type == Token_Class.Return)
+            else if (TokenStream[InputPointer].token_type == Token_Class.Integer || TokenStream[InputPointer].token_type == Token_Class.String || TokenStream[InputPointer].token_type == Token_Class.Float || TokenStream[InputPointer].token_type == Token_Class.Write || TokenStream[InputPointer].token_type == Token_Class.Read || TokenStream[InputPointer].token_type == Token_Class.Repeat || TokenStream[InputPointer].token_type == Token_Class.If || TokenStream[InputPointer].token_type == Token_Class.ElseIf || TokenStream[InputPointer].token_type == Token_Class.Else || TokenStream[InputPointer].token_type == Token_Class.Return)
             {
                 Error_List.Add("Parsing Error: Expected "
                         + Token_Class.Idenifier.ToString() + " and " +
@@ -527,6 +578,7 @@ namespace Tiny_Langauge_Compiler
                 }
                 else
                 {
+                    
                     return null;
                 }
 
@@ -893,7 +945,7 @@ namespace Tiny_Langauge_Compiler
                         statements.Children.Add(FunctionCall());
                         
                     }
-                    else if (TokenStream[InputPointer].token_type == Token_Class.Return || TokenStream[InputPointer].token_type == Token_Class.Until || TokenStream[InputPointer].token_type == Token_Class.End)
+                    else if (TokenStream[InputPointer].token_type == Token_Class.Return || TokenStream[InputPointer].token_type == Token_Class.Until || TokenStream[InputPointer].token_type == Token_Class.End || TokenStream[InputPointer].token_type == Token_Class.Else || TokenStream[InputPointer].token_type == Token_Class.ElseIf)
                     {
                         return null;
                     }
