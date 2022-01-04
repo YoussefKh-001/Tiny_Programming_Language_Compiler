@@ -28,18 +28,21 @@ namespace Tiny_Langauge_Compiler
             Scanner scanner = new Scanner();
             scanner.StartScan(Code);
             Parser parser = new Parser();
-            parser.StartParsing(scanner.Tokens);
             ErrorListBox.Items.Clear();
             foreach(string error in scanner.errorList)
             {
                 ErrorListBox.Items.Add(error);
             }
+            TokensGridView.DataSource = scanner.tokensDataTable;
+            if (scanner.errorList.Count > 0)
+                return;
+            parser.StartParsing(scanner.Tokens);
+
             foreach (string error in parser.Error_List)
             {
                 ErrorListBox.Items.Add(error);
             }
 
-            TokensGridView.DataSource = scanner.tokensDataTable;
             ParseTree.Nodes.Clear();
             ParseTree.Nodes.Add(Parser.PrintParseTree(parser.root));
         }

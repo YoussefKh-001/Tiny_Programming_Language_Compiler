@@ -69,7 +69,11 @@ namespace Tiny_Langauge_Compiler
             
             functionCall.Children.Add(FunctionCallAsTerm());
             functionCall.Children.Add(match(Token_Class.Semicolon));
-
+            if (TokenStream[InputPointer - 1].token_type != Token_Class.Semicolon)
+            {
+                InputPointer--;
+                return null;
+            }
             return functionCall;
         }
   
@@ -260,9 +264,18 @@ namespace Tiny_Langauge_Compiler
            
             assignmentStatment.Children.Add(match(Token_Class.Idenifier));
             assignmentStatment.Children.Add(match(Token_Class.AssignOperator));
+            if(TokenStream[InputPointer-1].token_type != Token_Class.AssignOperator)
+            {
+                InputPointer--;
+                return null;
+            }
             assignmentStatment.Children.Add(Expression());
             assignmentStatment.Children.Add(match(Token_Class.Semicolon));
-            
+            if (TokenStream[InputPointer - 1].token_type != Token_Class.Semicolon)
+            {
+                InputPointer--;
+                return null;
+            }
             return assignmentStatment;
         }
 
@@ -296,7 +309,11 @@ namespace Tiny_Langauge_Compiler
             declarationStatement.Children.Add(DataType());
             declarationStatement.Children.Add(IdentifiersDeclarationList());
             declarationStatement.Children.Add(match(Token_Class.Semicolon));
-
+            if (TokenStream[InputPointer - 1].token_type != Token_Class.Semicolon)
+            {
+                InputPointer--;
+                return null;
+            }
             return declarationStatement;
         }
 
@@ -305,19 +322,16 @@ namespace Tiny_Langauge_Compiler
             //
             Node identifiersDeclarationList = new Node("Identifiers Declaration List");
 
-            try
+            identifiersDeclarationList.Children.Add(match(Token_Class.Idenifier));
+            if (TokenStream[InputPointer - 1].token_type != Token_Class.Idenifier)
             {
-                if (TokenStream[InputPointer].token_type == Token_Class.Idenifier)
-                {
-                    identifiersDeclarationList.Children.Add(match(Token_Class.Idenifier));
-                    identifiersDeclarationList.Children.Add(AssignOrNot());
-                    identifiersDeclarationList.Children.Add(DeclarationParameters());
-                } else
-                    return null;
-            }catch(Exception e)
-            {
+                if (TokenStream[InputPointer].token_type != Token_Class.Semicolon)
+                    InputPointer--;
+                
                 return null;
             }
+            identifiersDeclarationList.Children.Add(AssignOrNot());
+            identifiersDeclarationList.Children.Add(DeclarationParameters());
 
             return identifiersDeclarationList;
         }
@@ -333,8 +347,7 @@ namespace Tiny_Langauge_Compiler
                 {
                     assignOrNot.Children.Add(match(Token_Class.AssignOperator));
                     assignOrNot.Children.Add(Expression());
-                } else
-                    return null;
+                } else return null;
             }catch(Exception e)
             {
                 return null;
@@ -425,7 +438,11 @@ namespace Tiny_Langauge_Compiler
             writeStatement.Children.Add(match(Token_Class.Write));
             writeStatement.Children.Add(WriteTerminal());
             writeStatement.Children.Add(match(Token_Class.Semicolon));
-
+            if (TokenStream[InputPointer - 1].token_type != Token_Class.Semicolon)
+            {
+                InputPointer--;
+                return null;
+            }
             return writeStatement;
         }
 
@@ -454,8 +471,27 @@ namespace Tiny_Langauge_Compiler
 
             readStatement.Children.Add(match(Token_Class.Read));
             readStatement.Children.Add(match(Token_Class.Idenifier));
-            readStatement.Children.Add(match(Token_Class.Semicolon));
+            if (TokenStream[InputPointer - 1].token_type != Token_Class.Idenifier)
+            {
+                if (TokenStream[InputPointer - 1].token_type != Token_Class.Semicolon)
+                {
+                    InputPointer--;
+                    return null;
+                }
+                else
+                {
+                    return null;
+                }
 
+            }
+            readStatement.Children.Add(match(Token_Class.Semicolon));
+            if (TokenStream[InputPointer - 1].token_type != Token_Class.Semicolon)
+            {
+                InputPointer--;
+                if (TokenStream[InputPointer].token_type == Token_Class.AssignOperator)
+                    InputPointer--;
+                return null;
+            }
             return readStatement;
         }
 
@@ -573,9 +609,15 @@ namespace Tiny_Langauge_Compiler
                 InputPointer--;
                 return null;
             }
+            /*if (TokenStream[InputPointer].token_type != Token_Class.RCurlyBraces)
+                return null;*/
             returnStatement.Children.Add(Expression());
             returnStatement.Children.Add(match(Token_Class.Semicolon));
-
+            if (TokenStream[InputPointer - 1].token_type != Token_Class.Semicolon)
+            {
+                InputPointer--;
+                return null;
+            }
             return returnStatement;
         }
 
@@ -787,10 +829,11 @@ namespace Tiny_Langauge_Compiler
                         statements.Children.Add(FunctionCall());
                         statements.Children.Add(Statements());
                     }
-                    else
+                    else 
                     {
                         return null;
                     }
+                   
                 }
                 catch (Exception x)
                 {
@@ -847,7 +890,8 @@ namespace Tiny_Langauge_Compiler
             {
                 if (ExpectedToken == TokenStream[InputPointer].token_type)
                 {
-                    InputPointer++;
+                    if (InputPointer < TokenStream.Count - 1)
+                        InputPointer++;
                     Node newNode = new Node(ExpectedToken.ToString());
 
                     return newNode;
@@ -860,7 +904,8 @@ namespace Tiny_Langauge_Compiler
                         + ExpectedToken.ToString() + " and " +
                         TokenStream[InputPointer].token_type.ToString() +
                         "  found\r\n");
-                    InputPointer++;
+                    
+                        InputPointer++;
                     return null;
                 }
             }
@@ -868,6 +913,7 @@ namespace Tiny_Langauge_Compiler
             {
                 Error_List.Add("Parsing Error: Expected "
                         + ExpectedToken.ToString() + "\r\n");
+               
                 InputPointer++;
                 return null;
             }
